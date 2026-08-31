@@ -1,14 +1,14 @@
-# SLUSH — Passive Threat Detection for Unidirectional Networks
+# SLUSH - Passive Threat Detection for Unidirectional Networks
 
-SLUSH watches network traffic and tells you when something's wrong. That's it — it never touches a flow table, never sends a packet back, never mitigates anything. It just watches, scores, and alerts.
+SLUSH watches network traffic and tells you when something's wrong. That's it; it never touches a flow table, never sends a packet back, never mitigates anything. It just watches, scores, and alerts.
 
 That constraint isn't a limitation we ended up with by accident. It's the whole point of the project.
 
 ## Why "passive-only" is the actual design
 
-This started life as [PS26145](https://github.com/advait-r/DDOS-Mitigation-Mininet) for NTRO at SIH 2026 — *"AI-Based Detection of Cyber Threats in Unidirectional IP Traffic."* Unidirectional means exactly what it sounds like: think a data diode, a SPAN/mirror port, a tap sitting on a link that physically cannot send anything back upstream. A lot of network security tooling quietly assumes it can react — drop the flow, reset the connection, push a blocklist. None of that is on the table here. If the sensor can't talk back to the wire, "detect and block" collapses into just "detect," and the entire system has to be built around that from the ground up rather than bolted on as an afterthought.
+This started life as [PS26145](https://github.com/advait-r/DDOS-Mitigation-Mininet) for NTRO at SIH 2026 - *"AI-Based Detection of Cyber Threats in Unidirectional IP Traffic."* Unidirectional means exactly what it sounds like: think a data diode, a SPAN/mirror port, a tap sitting on a link that physically cannot send anything back upstream. A lot of network security tooling quietly assumes it can react, drop the flow, reset the connection, push a blocklist. None of that is on the table here. If the sensor can't talk back to the wire, "detect and block" collapses into just "detect," and the entire system has to be built around that from the ground up rather than bolted on as an afterthought.
 
-So the controller in this repo is read-only by construction: `packet_in_handler` learns MACs and installs *forwarding* rules so traffic keeps flowing, full stop — there is no code path anywhere that writes a drop rule. The only thing a detection produces is a line appended to `alerts.jsonl`. Everything downstream (the dashboard, the hardware indicator) is a consumer of that file, never a controller of the network.
+So the controller in this repo is read-only by construction: `packet_in_handler` learns MACs and installs *forwarding* rules so traffic keeps flowing, there is no code path anywhere that writes a drop rule. The only thing a detection produces is a line appended to `alerts.jsonl`. Everything downstream (the dashboard, the hardware indicator) is a consumer of that file, never a controller of the network.
 
 The earlier [DDOS-Mitigation-Mininet](https://github.com/advait-r/DDOS-Mitigation-Mininet) project I built is the active-mitigation sibling to this — same Mininet/os_ken/Random-Forest bones, opposite philosophy. Worth a look if you want to see what changes when the sensor is allowed to fight back.
 
@@ -160,11 +160,11 @@ python3 controller/pico_bridge.py /dev/ttyACM1
 
 ## Where the classifier came from
 
-`ml/generate_dataset_old.py` and `train_model_old.py` are the first version — binary, attack-vs-benign, three features. They're still in the repo on purpose. The move to a 3-class model (`ddos` / `benign` / `exfiltration`) with a fourth feature, `bytes_per_packet`, came directly from a specific failure: a slow, sustained exfiltration flow looks *nothing* like the many-small-packets shape of a flood, and the old model had no way to represent that difference at all. `bytes_per_packet` turned out to be the single strongest separator between the two attack classes once it was added.
+`ml/generate_dataset_old.py` and `train_model_old.py` are the first version - binary, attack-vs-benign, three features. They're still in the repo on purpose. The move to a 3-class model (`ddos` / `benign` / `exfiltration`) with a fourth feature, `bytes_per_packet`, came directly from a specific failure: a slow, sustained exfiltration flow looks *nothing* like the many-small-packets shape of a flood, and the old model had no way to represent that difference at all. `bytes_per_packet` turned out to be the single strongest separator between the two attack classes once it was added.
 
 ## Known gaps, stated plainly
 
-- **The RF's features are per-flow.** Distributed floods with spoofed sources reveal themselves through *flow-table cardinality*, which the RF never sees directly — this is exactly why the adaptive-override path exists as a separate, non-ML check on source-IP entropy. The two signals corroborate each other; neither is sufficient alone.
+- **The RF's features are per-flow.** Distributed floods with spoofed sources reveal themselves through *flow-table cardinality*, which the RF never sees directly, this is exactly why the adaptive-override path exists as a separate, non-ML check on source-IP entropy. The two signals corroborate each other; neither is sufficient alone.
 - **`LARGE_FLOW_BYTES = 100,000` is a guess, not a measurement.** It was set against the synthetic dataset's exfiltration distribution, not against real captured traffic. It needs recalibrating once this runs against something other than Mininet.
 - **DNS parsing runs on every UDP/53 packet via scapy**, separately from the os_ken forwarding path, on purpose — but that also means it's a second, unguarded parser sitting in the hot path. A malformed DNS packet is caught by a broad `except Exception`, which is safe but not diagnostic.
 - **No throughput benchmark yet.** The dashboard says so honestly (`"not yet run"`) rather than presenting a made-up flows/sec number — that's `bench/throughput_test.py` territory, not yet built.
