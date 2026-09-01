@@ -10,7 +10,7 @@ class Alert:
     flow_id: str
     src_ip: str
     dst_ip: str
-    threat_class: str   # ddos | recon_scan | c2_beacon | dga_dns | dns_tunnel | encrypted_malware | exfiltration
+    threat_class: str   # ddos | recon_scan | c2_beacon | dga_dns | dns_tunnel | encrypted_malware | exfiltration | slowloris
     confidence: float    # 0-1
     severity: str         # low | medium | high | critical
     evidence: dict
