@@ -48,19 +48,21 @@ try:
                         alert = json.loads(line_str)
                         threat_class = alert.get("threat_class", "benign")
                         confidence = float(alert.get("confidence", 0.0))
-                        evidence = alert.get("evidence", {})
+# BUG FIX: this used to be evidence.get("anomaly_score", confidence) — but
+# anomaly_score is an internal flow-count-gate diagnostic on its own scale, not a
+# calibrated severity. It saturates near 1.0 for high-pps floods REGARDLESS of
+# whether the flood is distributed or not, which silently overrode the
+# deliberately-lower confidence=0.85 the controller assigns to non-distributed,
+# RF-classified floods ("high, not critical" -> yellow). Using confidence directly
+# is what actually keeps yellow (single-source floods) distinct from red
+# (ADAPTIVE-OVERRIDE / distributed floods, which already sets confidence=anomaly_score
+# on purpose).
+                        score = confidence
 
-                        # Extract anomaly score or confidence
-                        score = float(evidence.get("anomaly_score", confidence))
-
-                        # Map scores for main.py thresholds:
-                        # - < 0.60  -> Green LED
-                        # - 0.60-0.94 -> Yellow LED + 1s Beep
-                        # - >= 0.95 -> Red LED + Continuous Alarm
                         if threat_class == "benign":
                             score = 0.00
-                        elif threat_class == "recon_scan" and score >= 0.95:
-                            score = 0.75  # Cap scan alerts to trigger Yellow LED
+                        #elif threat_class == "recon_scan" and score >= 0.95:
+                            #score = 0.75  # Cap scan alerts to trigger Yellow LED
 
                         # If an actual attack occurs, extend the active threat timer
                         if score >= 0.60:

@@ -21,91 +21,40 @@ MAX_FEED_ROWS = 50
 ACTIVE_WINDOW_SECONDS = 60          # "Active Alerts" = alerts in the last minute
 ENCLAVE_ALIVE_WINDOW_SECONDS = 15   # widened past controller.py's 5s POLL_INTERVAL so
                                      # scheduling jitter doesn't flicker LIVE -> IDLE
+#TIMELINE_WINDOW_SECONDS = 600       # 10-minute alert timeline
 TIMELINE_BUCKET_SECONDS = 30        # bucketed into 30s slices -> 20 points
 TIMELINE_MAX_BUCKETS = 1440
 
 # ---------------------------------------------------------------------------
-# Single source of truth for the attack taxonomy. `implemented` tracks what
-# controller.py actually raises TODAY — check controller.py's _raise_alert
-# call sites before changing this, not what's aspirational.
+# Single source of truth for the attack taxonomy. Previously this lived twice
+# (once as Python keyword-matching rules, once as three parallel JS objects
+# keyed by hand-picked codes) and the two could drift apart silently. Now it's
+# defined once, here, and shipped to the frontend via /api/meta on load.
 #
-# slowloris flipped to True: PATH 3 in flow_stats_reply_handler is fully
-# implemented and alerts.jsonl already has real slowloris detections in it
-# (previous version of this file had it marked as a reserved/unimplemented
-# slot, which was stale — it was hiding a working detector).
+# `implemented: True`  -> threat_class values controller.py actually raises today
+#                          (see PassiveThreatController.LABEL_MAP / _raise_alert
+#                          call sites: dga_dns, dns_tunnel, recon_scan, c2_beacon,
+#                          ddos, exfiltration).
+# `implemented: False` -> reserved slot for a detector that doesn't exist yet.
+#                          Always rendered in the breakdown chart, always at zero,
+#                          greyed out and labeled "not wired up yet". Flip this
+#                          flag once the detector ships and it lights up with zero
+#                          other changes anywhere in this file.
+#
+# To add a new attack class later: add one entry here. Nothing else to touch.
 # ---------------------------------------------------------------------------
 ATTACK_META = {
-    "ddos":               {"label": "DDoS",             "color": "#ef4444", "icon": "\U0001F30A", "implemented": True},
-    "exfiltration":       {"label": "Exfiltration",      "color": "#a855f7", "icon": "\U0001F4E4", "implemented": True},
-    "recon_scan":         {"label": "Recon Scan",        "color": "#f59e0b", "icon": "\U0001F50D", "implemented": True},
-    "dns_tunnel":         {"label": "DNS Tunneling",     "color": "#14b8a6", "icon": "\U0001F573\uFE0F", "implemented": True},
-    "dga_dns":            {"label": "DGA DNS",           "color": "#eab308", "icon": "\U0001F3B2", "implemented": True},
-    "c2_beacon":          {"label": "C2 Beaconing",      "color": "#22d3ee", "icon": "\U0001F4E1", "implemented": True},
-    "slowloris":          {"label": "Slowloris",         "color": "#f97316", "icon": "\U0001F40C", "implemented": True},
-    # JA3/JA3S fingerprinting via controller.py's JA3Tracker — flags blacklist matches
-    # and rare/first-seen fingerprints from TLS handshake metadata only. Blacklist-match
-    # alerts (confidence 0.95) are high-precision; rare-fingerprint alerts (confidence
-    # 0.5) are a coarse first pass and should be described as such in any report.
-    "encrypted_malware":  {"label": "Encrypted Malware", "color": "#94a3b8", "icon": "\U0001F9A0", "implemented": True},
+    "ddos":               {"label": "DDoS",            "color": "#ef4444", "icon": "\U0001F30A", "implemented": True},
+    "exfiltration":       {"label": "Exfiltration",     "color": "#a855f7", "icon": "\U0001F4E4", "implemented": True},
+    "recon_scan":         {"label": "Recon Scan",       "color": "#f59e0b", "icon": "\U0001F50D", "implemented": True},
+    "dns_tunnel":         {"label": "DNS Tunneling",    "color": "#14b8a6", "icon": "\U0001F573\uFE0F", "implemented": True},
+    "dga_dns":            {"label": "DGA DNS",          "color": "#eab308", "icon": "\U0001F3B2", "implemented": True},
+    "c2_beacon":          {"label": "C2 Beaconing",     "color": "#22d3ee", "icon": "\U0001F4E1", "implemented": True},
+    # Not yet implemented in controller.py — reserved slots.
+    "slowloris":          {"label": "Slowloris",        "color": "#94a3b8", "icon": "\U0001F40C", "implemented": False},
+    "encrypted_malware":  {"label": "Encrypted Malware","color": "#94a3b8", "icon": "\U0001F9A0", "implemented": False},
     # Catch-all for anything that doesn't match a known threat_class.
-    "unknown":            {"label": "Unknown",           "color": "#64748b", "icon": "\u2753", "implemented": True},
-}
-
-# ---------------------------------------------------------------------------
-# Model / system performance figures for the project report and the dashboard
-# footer. These are intentionally NOT computed live from alerts.jsonl: every
-# flow in a Mininet test run is attacker-generated on purpose, so that file
-# has no genuine benign traffic in it to measure a real false-positive rate
-# against, and no ground-truth "attack actually started at T" to measure
-# true detection latency against either.
-#
-# detection_accuracy / false_positive_rate are measured against the labeled
-# synthetic set the RF was actually trained and tested on:
-#   cd ml && python3 generate_dataset.py && python3 train_model.py
-# Last measured: 20,000 synthetic flows (14,000 benign / 4,000 ddos /
-# 2,000 exfiltration), 80/20 stratified split, 5-seed average on the 4,000-flow
-# held-out test set.
-#
-# alert_latency is architectural, derived from controller.py's own constants
-# and a direct microbenchmark of _classify(), not guessed:
-#   - packet-triggered detectors (recon_scan/dga_dns/dns_tunnel/c2_beacon) fire
-#     on the same packet_in event, no polling wait
-#   - flow-stat-triggered detectors (ddos/exfiltration/slowloris) only run
-#     against OFPFlowStatsRequest replies, bounded by POLL_INTERVAL=5s
-#   - classify_overhead_ms was measured directly: 500-call average of
-#     _classify()'s full body (DataFrame construction + model.predict()),
-#     which is the dominant cost, not the forest itself
-#
-# Re-run both benchmarks and update this block if the model, dataset, or
-# POLL_INTERVAL change.
-# ---------------------------------------------------------------------------
-MODEL_METRICS = {
-    "dataset": {
-        "total_flows": 20000,
-        "breakdown": {"benign": 14000, "ddos": 4000, "exfiltration": 2000},
-        "source": "Synthetic — ml/generate_dataset.py (Poisson/exponential flow models per class)",
-        "test_set_size": 4000,
-    },
-    "detection_accuracy_pct": 100.0,
-    "false_positive_rate_pct": 0.0,
-    "accuracy_caveat": (
-        "Measured on the synthetic held-out test set the RF was trained on, which is "
-        "trivially separable by design (byte_count means differ by 8-14x between "
-        "classes) — an upper bound on model capability, not a live-traffic guarantee. "
-        "Doesn't cover the five rule-based detectors, which never touch the RF at all."
-    ),
-    "alert_latency_ms": {
-        "packet_triggered": {
-            "typical_ms": 2,
-            "covers": ["recon_scan", "dga_dns", "dns_tunnel", "c2_beacon"],
-        },
-        "flow_stat_triggered": {
-            "avg_ms": 2500,
-            "worst_case_ms": 5000,
-            "classify_overhead_ms": 5.4,
-            "covers": ["ddos", "exfiltration", "slowloris"],
-        },
-    },
+    "unknown":            {"label": "Unknown",          "color": "#64748b", "icon": "\u2753", "implemented": True},
 }
 
 
@@ -140,23 +89,9 @@ def classify(threat_class):
     Falls back to 'unknown' for anything not in the taxonomy rather than
     dropping the alert."""
     key = str(threat_class or "").strip().lower()
-    return key if key in ATTACK_META else "unknown"
-
-
-def confidence_by_class(alerts):
-    """Live, honestly-computable metric: mean confidence per fired class this
-    session. Unlike accuracy/FPR this needs no ground truth — confidence is a
-    field every alert already carries, so this is a straight average, not an
-    estimate. Status/heartbeat entries (flow_id == 'status') are excluded —
-    they're not detector output."""
-    sums, counts = {}, {}
-    for a in alerts:
-        if a.get("flow_id") == "status":
-            continue
-        key = classify(a.get("threat_class"))
-        sums[key] = sums.get(key, 0.0) + float(a.get("confidence", 0.0))
-        counts[key] = counts.get(key, 0) + 1
-    return {k: round(sums[k] / counts[k], 3) for k in sums}
+    if key in ATTACK_META:
+        return key
+    return "unknown"
 
 
 def build_dashboard_data():
@@ -179,7 +114,8 @@ def build_dashboard_data():
 
     # Alert timeline: full-session history in fixed 30s buckets, anchored to
     # SESSION_START instead of "now" — buckets accumulate for the life of the
-    # session instead of scrolling out of a fixed rolling window.
+    # session instead of scrolling out of a fixed rolling window, so an attack
+    # from 15 minutes ago stays visible instead of disappearing off the chart.
     elapsed = max(0.0, now - SESSION_START)
     n_buckets = min(TIMELINE_MAX_BUCKETS, int(elapsed // TIMELINE_BUCKET_SECONDS) + 1)
     bucket_totals = [0] * n_buckets
@@ -226,7 +162,6 @@ def build_dashboard_data():
         },
         "threat_mix": dict(threat_mix),
         "severity_mix": dict(severity_mix),
-        "confidence_by_class": confidence_by_class(alerts),
         "timeline": {
             "labels": timeline_labels,
             "totals": bucket_totals,
@@ -307,7 +242,7 @@ HTML_TEMPLATE = """
     <!-- Attack Activity Timeline (hover for a breakdown at that moment) -->
     <div class="bg-[#131A32] p-5 rounded-lg border border-slate-800 mb-6">
         <div class="flex items-center justify-between mb-3">
-            <h2 class="text-base font-medium">Attack Activity (session)</h2>
+            <h2 class="text-base font-medium">Attack Activity (10 min)</h2>
             <span class="text-xs text-slate-500">hover to inspect a moment in time</span>
         </div>
         <div style="height: 200px;">
@@ -349,48 +284,23 @@ HTML_TEMPLATE = """
                 </div>
                 <canvas id="attackTypeChart" height="180"></canvas>
             </div>
-
-            <div class="bg-[#131A32] p-5 rounded-lg border border-slate-800">
-                <h3 class="text-sm font-medium mb-3">Avg. Confidence by Class</h3>
-                <div id="confidence-list" class="space-y-2 text-xs">
-                    <div class="text-slate-500">No alerts yet.</div>
-                </div>
-            </div>
-
             <div class="bg-[#131A32] p-5 rounded-lg border border-slate-800 text-xs space-y-2">
                 <div class="flex justify-between">
                     <span class="text-slate-400">Detection</span>
                     <span class="font-semibold text-right">Adaptive gate + Random Forest + rule-based detectors</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-400">Detection accuracy</span>
-                    <span id="mm-accuracy" class="font-semibold">—</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400">False positive rate</span>
-                    <span id="mm-fpr" class="font-semibold">—</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400">Alert latency</span>
-                    <span id="mm-latency" class="font-semibold text-right">—</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400">Training dataset</span>
-                    <span id="mm-dataset" class="font-semibold text-right">—</span>
-                </div>
-                <div class="flex justify-between">
                     <span class="text-slate-400">Throughput benchmark</span>
                     <span class="font-semibold text-slate-500">not yet run</span>
                 </div>
-                <p id="mm-caveat" class="text-slate-500 pt-1 border-t border-slate-800 leading-relaxed"></p>
             </div>
         </div>
     </div>
 
     <script>
-        // Attack taxonomy is fetched once from /api/meta rather than duplicated in JS.
+        // Attack taxonomy is fetched once from /api/meta rather than duplicated
+        // in JS — this IS the ATTACK_META dict from app.py, serialized.
         let ATTACK_META = {};
-        let MODEL_METRICS = {};
 
         function metaFor(code) {
             return ATTACK_META[code] || { label: code, color: '#64748b', icon: '\u2753', implemented: true };
@@ -527,6 +437,9 @@ HTML_TEMPLATE = """
         }
 
         function updateAttackTypeChart(threatMix) {
+            // Every known attack code always appears — implemented ones show real
+            // counts, reserved (not-yet-implemented) ones always render at zero,
+            // greyed out via reduced opacity on their bar color.
             const codes = Object.keys(ATTACK_META).filter(c => c !== 'unknown');
             const counts = codes.map(c => threatMix[c] || 0);
             const colors = codes.map(c => {
@@ -552,55 +465,9 @@ HTML_TEMPLATE = """
             }
         }
 
-        function updateConfidenceList(confByClass) {
-            const el = document.getElementById('confidence-list');
-            const entries = Object.entries(confByClass);
-            if (entries.length === 0) {
-                el.innerHTML = '<div class="text-slate-500">No alerts yet.</div>';
-                return;
-            }
-            entries.sort((a, b) => b[1] - a[1]);
-            el.innerHTML = entries.map(([code, conf]) => {
-                const m = metaFor(code);
-                const pct = Math.round(conf * 100);
-                return `
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span style="color:${m.color}">${m.icon} ${m.label}</span>
-                            <span class="font-semibold">${conf.toFixed(2)}</span>
-                        </div>
-                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full" style="width:${pct}%; background:${m.color}"></div>
-                        </div>
-                    </div>`;
-            }).join('');
-        }
-
-        // Static (fetched once on load, doesn't change while the dashboard runs) —
-        // see MODEL_METRICS in app.py for how each number was actually derived.
-        function renderModelMetrics() {
-            const mm = MODEL_METRICS;
-            document.getElementById('mm-accuracy').innerText = `${mm.detection_accuracy_pct.toFixed(1)}% (synthetic test set)`;
-            document.getElementById('mm-fpr').innerText = `${mm.false_positive_rate_pct.toFixed(1)}% (synthetic test set)`;
-            document.getElementById('mm-latency').innerText =
-                `~${mm.alert_latency_ms.packet_triggered.typical_ms}ms (scan/DNS/beacon) · ` +
-                `~${(mm.alert_latency_ms.flow_stat_triggered.avg_ms / 1000).toFixed(1)}s avg, ` +
-                `${(mm.alert_latency_ms.flow_stat_triggered.worst_case_ms / 1000).toFixed(0)}s worst (ddos/exfil/slowloris)`;
-            const ds = mm.dataset;
-            document.getElementById('mm-dataset').innerText =
-                `${ds.total_flows.toLocaleString()} synthetic flows ` +
-                `(${ds.breakdown.benign.toLocaleString()} benign / ${ds.breakdown.ddos.toLocaleString()} ddos / ${ds.breakdown.exfiltration.toLocaleString()} exfil)`;
-            document.getElementById('mm-caveat').innerText = mm.accuracy_caveat;
-        }
-
         async function loadMeta() {
-            const [metaRes, mmRes] = await Promise.all([
-                fetch('/api/meta'),
-                fetch('/api/model-metrics'),
-            ]);
-            ATTACK_META = await metaRes.json();
-            MODEL_METRICS = await mmRes.json();
-            renderModelMetrics();
+            const res = await fetch('/api/meta');
+            ATTACK_META = await res.json();
         }
 
         async function refresh() {
@@ -648,7 +515,6 @@ HTML_TEMPLATE = """
 
             updateTimelineChart(data.timeline);
             updateAttackTypeChart(data.threat_mix);
-            updateConfidenceList(data.confidence_by_class);
         }
 
         (async function start() {
@@ -676,11 +542,6 @@ def api_dashboard():
 @app.route("/api/meta")
 def api_meta():
     return jsonify(ATTACK_META)
-
-
-@app.route("/api/model-metrics")
-def api_model_metrics():
-    return jsonify(MODEL_METRICS)
 
 
 if __name__ == "__main__":

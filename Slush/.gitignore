@@ -1,7 +1,23 @@
+# Security / Keys
+*.pem
+*.key
+
+# Logs and Runtime Data
+*.jsonl
+*.log
+activity.jsonl
+alerts.jsonl
+
+# Datasets and Outputs
+*.csv
+*.html
+
+# Model Artifacts
+*.pkl
+
+# Python cache
 __pycache__/
 *.pyc
-venv/
-.venv/
-*.log
-draftcontrollers/
-**/draftcontrollers/
+
+# Recon output
+hacktify_recon/

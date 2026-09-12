@@ -9,20 +9,20 @@ LABELS = {"ddos": 0, "benign": 1, "exfiltration": 2}
 def make_flow(kind):
     if kind == "ddos":
         # many small/medium packets, high total volume, short-lived flow — matches your original params
-        packet_count = np.random.poisson(500)
-        byte_count = np.random.poisson(60000)
-        flow_duration = np.random.exponential(0.5)
+        packet_count = np.random.poisson(150)
+        byte_count = np.random.poisson(15000)
+        flow_duration = np.random.exponential(1.5)
         src_ip = "10.0.0.3"
     elif kind == "exfiltration":
         # fewer packets but each carrying much more data, sustained over a longer connection —
         # this is the shape that a flow-count gate (tuned for "many flows") would miss
-        packet_count = np.random.poisson(80)
-        byte_count = np.random.poisson(500000)
-        flow_duration = np.random.exponential(8)
+        packet_count = np.random.poisson(1000)
+        byte_count = np.random.poisson(20000)
+        flow_duration = np.random.exponential(6)
         src_ip = f"10.0.0.{random.randint(1, 3)}"
     else:  # benign
-        packet_count = np.random.poisson(20)
-        byte_count = np.random.poisson(1500)
+        packet_count = np.random.poisson(70)
+        byte_count = np.random.poisson(9000)
         flow_duration = np.random.exponential(5)
         src_ip = f"10.0.0.{random.randint(1, 3)}"
 

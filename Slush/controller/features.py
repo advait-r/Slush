@@ -67,3 +67,31 @@ class BeaconTracker:
             "jitter_cv": round(cv, 3),
             "avg_bytes": round(sum(b for _, b in recs) / len(recs), 1),
         }
+
+class VolumeTracker:
+    """Sliding-window packet/byte volume per destination, fed directly from packet_in.
+    Doesn't depend on a switch flow-table entry ever being installed — which matters
+    because a spoofed-source or port-randomizing flood never repeats the same 5-tuple
+    enough times to pass _should_install_flow_mod's visibility gate, so OFPFlowStatsReply
+    never sees it (see controller.py comment on this). This tracker sees exactly what a
+    real passive tap/mirror port would see: every packet, regardless of switch state."""
+    def __init__(self, window_seconds=5):
+        self.window = window_seconds
+        self.events = defaultdict(list)  # dst_ip -> [(ts, src_ip, byte_len)]
+
+    def record(self, dst_ip, src_ip, ts, byte_len):
+        self.events[dst_ip].append((ts, src_ip, byte_len))
+        cutoff = ts - self.window
+        self.events[dst_ip] = [e for e in self.events[dst_ip] if e[0] >= cutoff]
+
+    def stats(self, dst_ip):
+        recs = self.events.get(dst_ip, [])
+        if not recs:
+            return {"packet_count": 0, "byte_count": 0, "duration": 0.0, "src_ips": []}
+        ts_values = [r[0] for r in recs]
+        return {
+            "packet_count": len(recs),
+            "byte_count": sum(r[2] for r in recs),
+            "duration": max(ts_values) - min(ts_values),
+            "src_ips": [r[1] for r in recs],
+        }

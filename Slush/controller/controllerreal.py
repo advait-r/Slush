@@ -10,20 +10,13 @@ import os
 import time
 import pandas as pd
 
-from scapy.layers.inet import TCP as ScapyTCP
-from scapy.packet import Raw
-from tls_features import parse_client_hello, parse_server_hello, ja3_digest, ja3s_digest, JA3Tracker
-
-
 from scapy.layers.l2 import Ether as ScapyEther
 from scapy.layers.dns import DNS
 from dns_features import dns_query_features, TunnelTracker
 
 from alerting import Alert, AlertSink
 from features import shannon_entropy, ScanTracker
-from features import shannon_entropy, ScanTracker, BeaconTracker, VolumeTracker
-from collections import defaultdict 
-
+from features import shannon_entropy, ScanTracker, BeaconTracker
 
 class PassiveThreatController(app_manager.OSKenApp):
     """Read-only enclave controller. No OFPFlowMod ever installs a drop rule here —
@@ -35,25 +28,16 @@ class PassiveThreatController(app_manager.OSKenApp):
     POLL_INTERVAL = 5  # seconds
     SCAN_PORT_THRESHOLD = 15     # unique dst ports from one src within window -> recon alert
     SCAN_HOST_THRESHOLD = 10     # unique dst hosts from one src within window -> recon alert
-    #ENTROPY_MIN_FOR_OVERRIDE = 3.0 --real application
-    ENTROPY_MIN_FOR_OVERRIDE = 1.5 #for simulation
+    ENTROPY_MIN_FOR_OVERRIDE = 3.0
 
     DGA_ENTROPY_THRESHOLD = 3.3      # single-query high-entropy pseudo-random label
     DGA_MAX_SLD_LEN = 30
     TUNNEL_QUERY_RATE_THRESHOLD = 2.0   # queries/sec to the SAME base domain
     TUNNEL_MIN_AVG_LEN = 40
     TUNNEL_MIN_AVG_ENTROPY = 3.0
-    
-    JA3_WINDOW_SECONDS = 300      # sightings window for prevalence tracking
-    JA3_RARE_SOURCE_MAX = 2       # a first-sighting fingerprint from this few distinct
-                              # sources is worth flagging; from many, it's probably
-                              # just a legitimate app version rolling out 
+     
 
-    TCP_HANDSHAKE_VISIBILITY_PACKETS = 4  # keep punting a new TCP flow's packets to the
-                                       # controller until we've seen at least this many,
-                                       # so the TLS ClientHello (a data packet a few RTTs
-                                       # after the SYN, same 5-tuple) isn't silently
-                                       # offloaded to switch hardware before we ever see it.
+
 
 
     SLOWLORIS_MIN_DURATION = 15         # flow must have been open at least this long
@@ -85,11 +69,6 @@ class PassiveThreatController(app_manager.OSKenApp):
     # backscatter, not a real attack — the actual flood is already caught by PATH 1/2 in
     # the correct direction, so it's safe to suppress the reversed one.
     BACKSCATTER_VOLUME_RATIO = 5
-    
-    LOW_ENTROPY_MAX_FOR_DDOS = 1.0  # tune against real Mininet traffic; a single dominant
-                                  # source should not alone satisfy the DDoS verdict
-
-
 
     LABEL_MAP = {0: "ddos", 1: "benign", 2: "exfiltration"}
 
@@ -113,33 +92,7 @@ class PassiveThreatController(app_manager.OSKenApp):
         self.tunnel_tracker = TunnelTracker(window_seconds=30)
         self.beacon_tracker = BeaconTracker(window_seconds=self.BEACON_WINDOW_SECONDS,
                                      min_events=self.BEACON_MIN_EVENTS)
-        self.tcp_flow_packet_counts = defaultdict(int)
-        self.volume_tracker = VolumeTracker(window_seconds=5)
-        self.ja3_tracker = JA3Tracker(
-            blacklist=self._load_ja3_blacklist(),
-            window_seconds=self.JA3_WINDOW_SECONDS,
-        )
-    
-    def _load_ja3_blacklist(self):
-        """Reads JA3 hashes from ja3_blacklist.txt next to this file. Handles both
-        full-line comments (#...) and trailing inline comments (hash  # note), and
-        only keeps tokens that actually look like a 32-char MD5 hex digest — this is
-        stricter than a bare strip() so a malformed line fails safely (silently
-        skipped) rather than polluting the blacklist set with garbage."""
-        import re
-        path = os.path.join(os.path.dirname(__file__), "ja3_blacklist.txt")
-        hashes = set()
-        try:
-            with open(path) as f:
-                for line in f:
-                    token = line.split("#", 1)[0].strip()
-                    if re.fullmatch(r"[a-f0-9]{32}", token):
-                        hashes.add(token)
-        except FileNotFoundError:
-            pass
-        return hashes
-    
-    
+
     def _ping_activity(self):
         """Overwrite (not append) a single-line heartbeat — this is a liveness signal,
         not a log, so it should never grow unbounded the way alerts.jsonl currently does."""
@@ -170,17 +123,7 @@ class PassiveThreatController(app_manager.OSKenApp):
         mod = parser.OFPFlowMod(datapath=datapath, priority=0,
                                  match=match, instructions=inst)
         datapath.send_msg(mod)
-    
-    def _should_install_flow_mod(self, ip_pkt, tcp_pkt):
-        if not tcp_pkt:
-            return True
-        key = (ip_pkt.src, tcp_pkt.src_port, ip_pkt.dst, tcp_pkt.dst_port)
-        if bool(tcp_pkt.bits & tcp.TCP_SYN) and not bool(tcp_pkt.bits & tcp.TCP_ACK):
-            self.tcp_flow_packet_counts[key] = 0
-        self.tcp_flow_packet_counts[key] += 1
-        return self.tcp_flow_packet_counts[key] >= self.TCP_HANDSHAKE_VISIBILITY_PACKETS
-    
-    
+
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         msg = ev.msg
@@ -188,13 +131,8 @@ class PassiveThreatController(app_manager.OSKenApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
-        
-        try:
-            pkt = packet.Packet(msg.data)
-            eth = pkt.get_protocols(ethernet.ethernet)[0]
-        except Exception:
-            return  # can't parse this frame — drop it silently rather than crash the handler
 
+        pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
 
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
@@ -221,16 +159,11 @@ class PassiveThreatController(app_manager.OSKenApp):
         tcp_pkt = pkt.get_protocol(tcp.tcp)
         udp_pkt = pkt.get_protocol(udp.udp)
 
-        
-
         if eth.ethertype == ether_types.ETH_TYPE_IP and ip_pkt:
-            self.volume_tracker.record(ip_pkt.dst, ip_pkt.src, time.time(), len(msg.data))
-
-            scapy_pkt = self._scapy_parse(msg.data)  # parsed once, used by DNS + TLS below
             # DNS-based detection (DGA + tunnelling) — query names are plaintext by
             # protocol, so this needs no payload decryption to satisfy that constraint.
             if udp_pkt and udp_pkt.dst_port == 53:
-                qname = self._extract_dns_qname(scapy_pkt)
+                qname = self._extract_dns_qname(msg.data)
                 if qname:
                     feats = dns_query_features(qname)
                     # BUG FIX: previously passed the raw `qname` in as base_domain (so every
@@ -279,32 +212,6 @@ class PassiveThreatController(app_manager.OSKenApp):
                 src_port = tcp_pkt.src_port
                 is_scan_probe = bool(tcp_pkt.bits & tcp.TCP_SYN) and not bool(tcp_pkt.bits & tcp.TCP_ACK)
             
-            
-                        # Encrypted-session malware detection (JA3/JA3S) — reads only the TLS handshake,
-            # which is cleartext by protocol design; no decryption happens anywhere here.
-            # Uses the SAME scapy_pkt parsed once at the top of this block (see BUG FIX
-            # note below _scapy_parse call) rather than re-parsing msg.data — that
-            # raw-vs-parsed mismatch was exactly what caused every TLS payload extraction
-            # to fail silently before this fix.
-            if tcp_pkt:
-                tcp_payload = self._extract_tcp_payload(scapy_pkt)
-                #self.logger.info(
-                    #"[TLS-TRACE] %s:%d->%s:%d payload=%s",
-                    #ip_pkt.src, tcp_pkt.src_port, ip_pkt.dst, tcp_pkt.dst_port,
-                    #f"{len(tcp_payload)}B" if tcp_payload else "None"
-                #) ---DEBUG CODE DRAFT
-                if tcp_payload:
-                    client_hello = parse_client_hello(tcp_payload)
-                    if client_hello:
-                        fp = ja3_digest(client_hello)
-                        #self.logger.info("[TLS-TRACE] JA3=%s", fp) ---- DEBUG CODE
-                        self._evaluate_ja3(fp, ip_pkt, tcp_pkt, role="client")
-                    else:
-                        server_hello = parse_server_hello(tcp_payload)
-                        if server_hello:
-                            fp = ja3s_digest(server_hello)
-                            #self.logger.info("[TLS-TRACE] JA3S=%s", fp) ---- DEBUG CODE
-                            self._evaluate_ja3(fp, ip_pkt, tcp_pkt, role="server")
                 # NEW — feed every fresh TCP connection into the beacon tracker regardless
                 # of whether it also looks like a scan probe; a beacon isn't a fan-out.
                 if bool(tcp_pkt.bits & tcp.TCP_SYN) and not bool(tcp_pkt.bits & tcp.TCP_ACK):
@@ -339,47 +246,36 @@ class PassiveThreatController(app_manager.OSKenApp):
                         evidence=fanout,
                         proto=6 if tcp_pkt else 17, src_port=src_port, dst_port=dst_port,
                     )
-        
-            # Encrypted-session malware detection (JA3/JA3S) — reads only the TLS handshake,
-            # which is cleartext by protocol design; no decryption happens anywhere here.
-            #if tcp_pkt:
-                #tcp_payload = self._extract_tcp_payload(msg.data)
-                #if tcp_payload:
-                    #client_hello = parse_client_hello(tcp_payload)
-                    #if client_hello:
-                        #self._evaluate_ja3(ja3_digest(client_hello), ip_pkt, tcp_pkt, role="client")
-                    #else:
-                        #server_hello = parse_server_hello(tcp_payload)
-                        #if server_hello:
-                            #self._evaluate_ja3(ja3s_digest(server_hello), ip_pkt, tcp_pkt, role="server")
-            
-            
+
         if out_port != ofproto.OFPP_FLOOD:
-            install_rule = True
             if eth.ethertype == ether_types.ETH_TYPE_IP and ip_pkt:
-                install_rule = self._should_install_flow_mod(ip_pkt, tcp_pkt)
                 match_kwargs = dict(
                     in_port=in_port,
                     eth_type=ether_types.ETH_TYPE_IP,
                     ipv4_src=ip_pkt.src,
                     ipv4_dst=ip_pkt.dst,
-                    ip_proto=ip_pkt.proto,
+                    ip_proto=ip_pkt.proto,   # ALWAYS pin protocol, even for ICMP (proto=1).
+                    # Without this, an ICMP-triggered rule (ping) has no protocol restriction
+                    # at all and silently becomes a wildcard that later TCP/UDP traffic
+                    # between the same two hosts matches too — exactly what happened when
+                    # `pingall` ran before the nmap scan: the ping's flow rule swallowed
+                    # every scan probe at the switch, so the controller never saw them.
                 )
                 if tcp_pkt:
                     match_kwargs.update(tcp_src=tcp_pkt.src_port, tcp_dst=tcp_pkt.dst_port)
                 elif udp_pkt:
                     match_kwargs.update(udp_src=udp_pkt.src_port, udp_dst=udp_pkt.dst_port)
+
                 match = parser.OFPMatch(**match_kwargs)
             else:
                 match = parser.OFPMatch(in_port=in_port, eth_dst=dst,
                                          eth_type=eth.ethertype)
 
-            if install_rule:
-                inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-                mod = parser.OFPFlowMod(datapath=datapath, priority=1,
-                                         match=match, instructions=inst,
-                                         idle_timeout=30, hard_timeout=60)
-                datapath.send_msg(mod)
+            inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
+            mod = parser.OFPFlowMod(datapath=datapath, priority=1,
+                                     match=match, instructions=inst,
+                                     idle_timeout=30, hard_timeout=60)
+            datapath.send_msg(mod)
 
         data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
@@ -389,77 +285,36 @@ class PassiveThreatController(app_manager.OSKenApp):
     def _monitor(self):
         while True:
             self._ping_activity()
-            self._check_packet_volume()
             for dp in self.datapaths.values():
                 self._request_stats(dp)
             hub.sleep(self.POLL_INTERVAL)
-    def _check_packet_volume(self):
-        """Volumetric DDoS/exfil check sourced from packet_in counts, not switch flow
-        stats — catches spoofed-source and port-randomizing floods that never accumulate
-        a repeat 5-tuple hit and so never install an OVS flow-mod (see _should_install_flow_mod)."""
-        for dst_ip in list(self.volume_tracker.events.keys()):
-            stats = self.volume_tracker.stats(dst_ip)
-            if stats["packet_count"] < 20:          # cheap floor before bothering to classify
-                continue
-            entropy = shannon_entropy(stats["src_ips"])
-            verdict, bytes_per_packet, rf_confidence = self._classify(
-                stats["packet_count"], stats["byte_count"], max(stats["duration"], 0.001)
-            )
-            if verdict == "benign":
-                continue
-            self._raise_alert(
-                threat_class=verdict,
-                src_ip="multiple" if len(set(stats["src_ips"])) > 1 else stats["src_ips"][0],
-                dst_ip=dst_ip,
-                confidence=rf_confidence,
-                evidence={
-                    "reason": "PACKET_VOLUME_TRACKER",
-                    "packet_count": stats["packet_count"],
-                    "byte_count": stats["byte_count"],
-                    "src_entropy": round(entropy, 3),
-                    "unique_sources": len(set(stats["src_ips"])),
-                    "bytes_per_packet": round(bytes_per_packet, 1),
-                },
-            )
+
     def _request_stats(self, datapath):
         parser = datapath.ofproto_parser
         req = parser.OFPFlowStatsRequest(datapath)
         datapath.send_msg(req)
     
-    def _scapy_parse(self, raw_data):
-        """Single scapy parse of the raw frame, shared by DNS and TLS extraction below —
-        avoids re-parsing the same bytes twice per packet_in event."""
+    def _extract_dns_qname(self, raw_data):
+        """Parse the raw Ethernet frame with scapy just for DNS — os_ken's packet lib
+        doesn't need to know about it, this stays fully separate from the forwarding path."""
         try:
-            return ScapyEther(raw_data)
-        except Exception:
-            return None
-
-    def _extract_dns_qname(self, scapy_pkt):
-        if scapy_pkt is None:
-            return None
-        try:
+            scapy_pkt = ScapyEther(raw_data)
             if scapy_pkt.haslayer(DNS) and scapy_pkt[DNS].qd is not None:
-                 return scapy_pkt[DNS].qd.qname.decode(errors="ignore")
+                return scapy_pkt[DNS].qd.qname.decode(errors="ignore")
         except Exception:
             pass
         return None
 
-    def _extract_tcp_payload(self, scapy_pkt):
-        if scapy_pkt is None:
-            return None
-        try:
-            if scapy_pkt.haslayer(ScapyTCP) and scapy_pkt.haslayer(Raw):
-                return bytes(scapy_pkt[Raw].load)
-        except Exception:
-            pass
-        return None
-
-    
-    def _looks_like_slowloris_shape(self, packet_count, byte_count, duration):
-        """Long-lived, near-empty flow — the RF was never trained on this shape (it only
-        knows ddos/benign/exfiltration), so don't let it guess. PATH 3 owns this signature."""
-        return duration >= self.SLOWLORIS_MIN_DURATION and byte_count <= self.SLOWLORIS_MAX_BYTES
-    
+    def _classify(self, packet_count, byte_count, duration):
+        """Shared 4-feature classification path used by both the flow-count gate and the
+        large-flow trigger below, so the two paths can never drift out of sync."""
+        bytes_per_packet = byte_count / max(packet_count, 1)
+        features = pd.DataFrame(
+            [[packet_count, byte_count, duration, bytes_per_packet]],
+            columns=["packet_count", "byte_count", "flow_duration", "bytes_per_packet"],
+        )
+        prediction = self.model.predict(features)[0]
+        return self.LABEL_MAP.get(prediction, "unknown"), bytes_per_packet
     def _looks_like_backscatter(self, src_ip, dst_ip, dst_packet_totals):
         """True if src_ip (the candidate attacker for this fan-in) is itself absorbing
         far more traffic THIS POLL than dst_ip is — i.e. src_ip looks like the real
@@ -522,26 +377,7 @@ class PassiveThreatController(app_manager.OSKenApp):
                 dst_ip, flow_count, anomaly_score, entropy, len(matching_flows)
             )
 
-# NEW: hping3 (and most flood tools) rotate the source port every packet unless told
-# not to (-k/--keep). Since flow rules here match on tcp_src too, a single-source,
-# non-distributed flood fragments into hundreds of 5-tuple entries carrying 1-2
-# packets each. Classifying those individually made the RF see "one tiny benign
-# packet" repeatedly and never the real flood shape — so a genuine, non-distributed
-# flood at h3 -> h4 produced zero alerts even though the flow-count gate above fired
-# correctly. Aggregating by source IP before classification restores the true attack
-# shape (large total packet/byte count) regardless of whether the source port rotates.
-            aggregated_by_src = {}
             for src_ip, flow_dst, packet_count, byte_count, duration, flow_proto, flow_dst_port in matching_flows:
-                agg = aggregated_by_src.setdefault(src_ip, {
-                    "packet_count": 0, "byte_count": 0, "duration": 0.0,
-                    "flow_proto": flow_proto, "flow_dst_port": flow_dst_port, "flow_entries": 0,
-                })
-                agg["packet_count"] += packet_count
-                agg["byte_count"] += byte_count
-                agg["duration"] = max(agg["duration"], duration)
-                agg["flow_entries"] += 1
-
-            for src_ip, agg in aggregated_by_src.items():
                 if self._looks_like_backscatter(src_ip, dst_ip, dst_packet_totals):
                     self.logger.info(
                         "[SUPPRESSED-BACKSCATTER] src=%s dst=%s — src is absorbing %dx+ more "
@@ -550,38 +386,33 @@ class PassiveThreatController(app_manager.OSKenApp):
                         src_ip, dst_ip, self.BACKSCATTER_VOLUME_RATIO
                     )
                     continue
-                
-                if self._looks_like_slowloris_shape(agg["packet_count"], agg["byte_count"], agg["duration"]):
-                    continue  # let PATH 3 classify this; RF has no slowloris label to give it 
-                
-                verdict, bytes_per_packet,rf_confidence = self._classify(agg["packet_count"], agg["byte_count"], agg["duration"])
 
-                is_fan_in_ddos = verdict == "ddos"
-                is_exfil = verdict == "exfiltration"
-                is_override = (anomaly_score >= 0.95 and entropy >= self.ENTROPY_MIN_FOR_OVERRIDE and agg["packet_count"] >= 5)   # NEW — require some real traffic, not just flow-table churn
+                verdict, bytes_per_packet = self._classify(packet_count, byte_count, duration)
 
-                if is_fan_in_ddos or is_exfil or is_override:
+                # ADAPTIVE-OVERRIDE exists to catch spoofed/distributed floods — HIGH
+                # source-IP entropy. A port scan from one source also inflates flow_count
+                # (one flow per port probed) but has LOW entropy since it's nearly all one
+                # source. Without gating on entropy here, a scan gets mislabeled "ddos".
+                is_override = anomaly_score >= 0.95 and entropy >= self.ENTROPY_MIN_FOR_OVERRIDE
+                if verdict in ("ddos", "exfiltration") or is_override:
                     threat_class = verdict if verdict != "benign" else "ddos"
                     reason = "RF" if verdict in ("ddos", "exfiltration") else "ADAPTIVE-OVERRIDE"
-                    confidence = anomaly_score if reason == "ADAPTIVE-OVERRIDE" else rf_confidence
                     self._raise_alert(
                         threat_class=threat_class,
                         src_ip=src_ip,
                         dst_ip=dst_ip,
-                        #delete-confidence=anomaly_score if reason == "ADAPTIVE-OVERRIDE" else 0.85,
-                        confidence=confidence,
+                        confidence=anomaly_score if reason == "ADAPTIVE-OVERRIDE" else 0.85,
                         evidence={
                             "reason": reason,
                             "flow_count": flow_count,
                             "anomaly_score": round(anomaly_score, 3),
                             "src_entropy": round(entropy, 3),
-                            "aggregated_flow_entries": agg["flow_entries"],
-                            "packet_count": agg["packet_count"],
-                            "byte_count": agg["byte_count"],
-                            "duration": round(agg["duration"], 2),
+                            "packet_count": packet_count,
+                            "byte_count": byte_count,
+                            "duration": round(duration, 2),
                             "bytes_per_packet": round(bytes_per_packet, 1),
                         },
-                        proto=agg["flow_proto"], dst_port=agg["flow_dst_port"],
+                        proto=flow_proto, dst_port=flow_dst_port,
                     )
 
         # PATH 2 — large single-flow trigger: independent of flow_count, catches BOTH a
@@ -591,16 +422,14 @@ class PassiveThreatController(app_manager.OSKenApp):
         for src_ip, dst_ip, packet_count, byte_count, duration, flow_proto, flow_dst_port in flow_entries_this_poll:
             if byte_count < self.LARGE_FLOW_BYTES:
                 continue
-            if self._looks_like_slowloris_shape(packet_count, byte_count, duration):
-                continue
-            verdict, bytes_per_packet, rf_confidence = self._classify(packet_count, byte_count, duration)
+            verdict, bytes_per_packet = self._classify(packet_count, byte_count, duration)
             if verdict == "benign":
                 continue
             self._raise_alert(
                 threat_class=verdict,
                 src_ip=src_ip,
                 dst_ip=dst_ip,
-                confidence=rf_confidence,
+                confidence=0.8,
                 evidence={
                     "reason": "LARGE_FLOW_TRIGGER",
                     "packet_count": packet_count,
@@ -638,57 +467,9 @@ class PassiveThreatController(app_manager.OSKenApp):
                     "concurrent_slow_flows": len(sources),
                     "unique_sources": len(set(sources)),
                 },
-            )
-    
-    def _classify(self, packet_count, byte_count, duration):
+            ) 
+         
 
-        """Shared 4-feature classification path used by both the flow-count gate and the
-        large-flow trigger below, so the two paths can never drift out of sync."""
-
-        bytes_per_packet = byte_count / max(packet_count, 1)
-        features = pd.DataFrame(
-            [[packet_count, byte_count, duration, bytes_per_packet]],
-            columns=["packet_count", "byte_count", "flow_duration", "bytes_per_packet"],
-        )
-        proba = self.model.predict_proba(features)[0]
-        prediction = proba.argmax()
-        confidence = float(proba[prediction])
-        return self.LABEL_MAP.get(prediction, "unknown"), bytes_per_packet, confidence
-    
-    
-    
-    
-    
-    
-    
-    
-    def _evaluate_ja3(self, fingerprint, ip_pkt, tcp_pkt, role):
-        now = time.time()
-        is_first = self.ja3_tracker.record(fingerprint, ip_pkt.src, now)
-        is_blacklisted = self.ja3_tracker.is_blacklisted(fingerprint)
-        prevalence = self.ja3_tracker.prevalence(fingerprint)
-
-    # Alert only on something actionable — a first-sighting alone is far too noisy on
-    # its own (every new browser/app version triggers one); it needs either a direct
-    # blacklist hit, or to still look rare (few distinct sources) within the window.
-        is_rare = is_first and prevalence["unique_sources"] <= self.JA3_RARE_SOURCE_MAX
-        if not is_blacklisted and not is_rare:
-            return
-
-        self._raise_alert(
-            threat_class="encrypted_malware",
-            src_ip=ip_pkt.src,
-            dst_ip=ip_pkt.dst,
-            confidence=0.95 if is_blacklisted else 0.5,
-            evidence={
-                "fingerprint": fingerprint,
-                "fingerprint_type": "ja3s" if role == "server" else "ja3",
-                "blacklist_match": is_blacklisted,
-                "first_sighting": is_first,
-                **prevalence,
-            },
-            proto=6, src_port=tcp_pkt.src_port, dst_port=tcp_pkt.dst_port,
-        )    
 
     def _compute_anomaly_score(self, dst_ip, flow_count):
         history = self.dst_history.setdefault(dst_ip, [])
@@ -721,7 +502,6 @@ class PassiveThreatController(app_manager.OSKenApp):
 
     def _raise_alert(self, threat_class, src_ip, dst_ip, confidence, evidence,
                       proto=None, src_port=None, dst_port=None):
-        cooldown_src = "spoofed-flood" if evidence.get("reason") == "ADAPTIVE-OVERRIDE" else src_ip
         key = (src_ip, dst_ip, threat_class)
         now = time.time()
         last_alert = self.alert_cooldown.get(key, 0)
@@ -743,4 +523,3 @@ class PassiveThreatController(app_manager.OSKenApp):
         self.alert_sink.emit(alert)
         self.logger.info("[ALERT] %s src=%s dst=%s confidence=%.2f severity=%s",
                           threat_class, src_ip, dst_ip, confidence, severity)
-    

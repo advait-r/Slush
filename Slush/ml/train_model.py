@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import joblib
@@ -16,6 +17,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced")
 clf.fit(X_train, y_train)
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(clf, X, y, cv=skf, scoring='f1_macro')
+print(f"5-fold F1: {scores.mean():.3f} ± {scores.std():.3f}")
+
 
 print(classification_report(
     y_test, clf.predict(X_test),
